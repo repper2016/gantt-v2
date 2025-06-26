@@ -79,7 +79,7 @@
         :allow-drag-outside="allowDragOutside"
         :drag-outside-config="dragOutsideConfig"
         :milestone-linkable="milestoneLinkable"
-        :show-task-names="true"
+        :show-task-names="false"
         @update:showSettingsDialog="$emit('update:showSettingsDialog', $event)"
         @update:tooltipEnabled="handleTooltipEnabledChange"
         @update:tooltipDelay="handleTooltipDelayChange"

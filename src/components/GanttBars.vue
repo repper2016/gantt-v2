@@ -6345,7 +6345,7 @@ export default {
 .gantt-bar.parent-task {
   background: linear-gradient(to bottom, #4CAF50, #388E3C);
   pointer-events: auto;
-  height: 16px;
+  height: 14px;
   border-radius: 0;
   padding: 0;
   overflow: visible;
