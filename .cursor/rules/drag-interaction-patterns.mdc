@@ -1,0 +1,77 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Drag Interaction Patterns & Anti-Patterns
+
+## Core Drag Implementation
+主要拖拽逻辑在 [src/components/GanttBars.vue](mdc:src/components/GanttBars.vue) 的 `onMouseMove` 方法中实现。
+
+## Successful Patterns ✅
+
+### 简单高效的节流
+```javascript
+// 跳过重复的鼠标位置，避免无效计算
+if (this.dragState.lastMouseX === event.clientX) {
+  return;
+}
+this.dragState.lastMouseX = event.clientX;
+```
+
+### 直接DOM操作
+```javascript
+// 直接更新样式，立即反馈
+bar.style.left = newLeft + 'px';
+bar.style.width = newWidth + 'px';
+```
+
+### 及时事件触发
+```javascript
+// 立即触发更新事件，不延迟
+this.$emit('bar-drag', {
+  barId: this.dragState.barId,
+  newStartDate: newDate,
+  newEndDate: endDate
+});
+```
+
+## Anti-Patterns to Avoid ❌
+
+### 过度RAF节流
+```javascript
+// ❌ 不要双重RAF节流
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    // 导致响应延迟
+  });
+});
+```
+
+### 复杂缓存逻辑
+```javascript
+// ❌ 不要为简单计算添加复杂缓存
+const cacheKey = `${barId}_${mouseX}_${scrollLeft}`;
+if (this.dragCache[cacheKey]) {
+  return this.dragCache[cacheKey];
+}
+```
+
+### 拖拽中的性能监控
+```javascript
+// ❌ 不要在拖拽过程中添加性能监控
+const startTime = performance.now();
+// ... 拖拽逻辑
+const endTime = performance.now();
+```
+
+## Configuration Guidelines
+- 使用 [src/config/performance.js](mdc:src/config/performance.js) 中的 `DRAG_THROTTLE` 参数
+- 推荐值: 4ms (高响应性)
+- 避免超过 8ms (用户会感觉卡顿)
+
+## Debugging Drag Issues
+1. 检查是否有重复的事件监听器
+2. 确认 `dragState` 状态管理正确
+3. 验证 DOM 更新是否及时
+4. 测试不同浏览器的表现

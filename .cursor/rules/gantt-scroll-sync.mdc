@@ -1,0 +1,107 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 甘特图滚动同步规则
+
+## 核心组件结构
+
+甘特图的滚动同步涉及以下关键组件：
+
+- 主容器：[src/components/GanttChart.vue](mdc:src/components/GanttChart.vue) - 管理左右两侧的滚动同步
+- 左侧虚拟表格：[src/components/BetterVirtualScrollTable.vue](mdc:src/components/BetterVirtualScrollTable.vue) - 处理大量数据的虚拟滚动
+- 左侧普通表格：[src/components/CustomGanttTable.vue](mdc:src/components/CustomGanttTable.vue) - 处理普通表格滚动
+- 甘特图视图：[src/views/GanttView.vue](mdc:src/views/GanttView.vue) - 顶层视图组件
+
+## 滚动同步机制
+
+### 左右滚动同步原理
+1. **右侧甘特图 → 左侧表格**：监听 `handleRightScroll` 事件，将 `scrollLeft` 同步到左侧表格的可滚动元素
+2. **左侧表格 → 右侧甘特图**：监听 `handleTableScroll` 或 `handleVirtualTableScroll`，将 `scrollTop` 同步到右侧甘特图
+
+### 关键ref引用
+- `this.$refs.scrollContainer` - 右侧甘特图滚动容器
+- `this.$refs.virtualTable.$refs.container` - 虚拟表格根容器（水平滚动）
+- `this.$refs.virtualTable.$refs.body` - 虚拟表格主体（垂直滚动）
+- `this.$refs.customTable.$refs.tableBody` - 普通表格主体（双向滚动）
+
+## 常见问题与解决方案
+
+### 问题1：滚动不同步
+**症状**：左右两侧滚动时位置不对齐
+**解决方案**：
+- 检查ref引用是否正确指向滚动元素
+- 确认滚动事件处理函数中的scrollLeft/scrollTop同步逻辑
+- 验证CSS中的overflow属性设置
+
+### 问题2：滚动跳跃或循环触发
+**症状**：滚动时出现抖动或无限循环
+**解决方案**：
+- 添加scrollSyncLock标志位防止循环触发
+- 使用条件判断避免重复设置相同的滚动位置
+- 考虑使用requestAnimationFrame限制更新频率
+
+### 问题3：虚拟滚动同步失效
+**症状**：使用BetterVirtualScrollTable时滚动不同步
+**解决方案**：
+- 确认虚拟滚动组件触发的是自定义scroll事件，payload包含scrollTop
+- 检查$refs.virtualTable.$refs.container是否存在
+- 验证虚拟滚动组件的内部DOM结构
+
+## 代码模式示例
+
+### 滚动同步标准模式
+```javascript
+handleRightScroll(event) {
+  const scrollLeft = event.target.scrollLeft;
+  const scrollTop = event.target.scrollTop;
+
+  if (this.shouldUseVirtualScrolling) {
+    const virtualTableContainer = this.$refs.virtualTable?.$refs?.container;
+    if (virtualTableContainer && virtualTableContainer.scrollLeft !== scrollLeft) {
+      virtualTableContainer.scrollLeft = scrollLeft;
+    }
+  } else {
+    const customTableBody = this.$refs.customTable?.$refs?.tableBody;
+    if (customTableBody && customTableBody.scrollLeft !== scrollLeft) {
+      customTableBody.scrollLeft = scrollLeft;
+    }
+  }
+}
+```
+
+### 防循环触发模式
+```javascript
+data() {
+  return {
+    scrollSyncLock: false
+  }
+},
+methods: {
+  handleScroll(event) {
+    if (this.scrollSyncLock) return;
+    this.scrollSyncLock = true;
+
+    // 同步逻辑
+
+    this.$nextTick(() => {
+      this.scrollSyncLock = false;
+    });
+  }
+}
+```
+
+## 调试技巧
+
+1. **控制台日志**：在滚动事件中添加console.log查看scrollLeft/scrollTop值
+2. **DOM检查**：使用浏览器开发者工具检查实际的滚动元素
+3. **ref验证**：在mounted钩子中打印所有相关的$refs确认引用正确
+4. **样式检查**：确认CSS中overflow、position等属性不会影响滚动行为
+
+## 性能考虑
+
+- 滚动事件频繁触发，避免在处理函数中进行重计算
+- 使用条件判断减少不必要的DOM操作
+- 对于大量数据，优先使用虚拟滚动避免性能问题
+- 考虑使用throttle或debounce优化滚动事件处理

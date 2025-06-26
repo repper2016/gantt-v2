@@ -1,0 +1,314 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 滚动行为模式与最佳实践
+
+## 滚动同步设计模式
+
+### 主从同步模式
+适用于左右分栏的界面，一侧作为主控，另一侧跟随：
+
+```javascript
+// 主控端（通常是甘特图区域）
+handleMasterScroll(event) {
+  const { scrollLeft, scrollTop } = event.target;
+
+  // 同步到从属端
+  this.syncToSlave({
+    horizontal: scrollLeft,
+    vertical: scrollTop
+  });
+}
+
+// 从属端响应
+syncToSlave({ horizontal, vertical }) {
+  const slaveElement = this.getSlaveScrollElement();
+  if (slaveElement) {
+    if (horizontal !== undefined) slaveElement.scrollLeft = horizontal;
+    if (vertical !== undefined) slaveElement.scrollTop = vertical;
+  }
+}
+```
+
+### 双向同步模式
+两个区域互相影响，需要防止循环触发：
+
+```javascript
+data() {
+  return {
+    scrollLock: false,
+    lastScrollSource: null
+  }
+},
+methods: {
+  handleLeftScroll(event) {
+    if (this.scrollLock || this.lastScrollSource === 'left') return;
+    this.syncScrollPosition('left', event);
+  },
+
+  handleRightScroll(event) {
+    if (this.scrollLock || this.lastScrollSource === 'right') return;
+    this.syncScrollPosition('right', event);
+  },
+
+  syncScrollPosition(source, event) {
+    this.scrollLock = true;
+    this.lastScrollSource = source;
+
+    // 执行同步逻辑
+
+    this.$nextTick(() => {
+      this.scrollLock = false;
+      setTimeout(() => {
+        this.lastScrollSource = null;
+      }, 50);
+    });
+  }
+}
+```
+
+## 虚拟滚动同步策略
+
+### 虚拟滚动组件的特殊处理
+虚拟滚动组件通常有自己的滚动管理机制：
+
+```javascript
+// 监听虚拟滚动组件的自定义事件
+handleVirtualScroll(virtualScrollData) {
+  const { scrollTop, startIndex, endIndex } = virtualScrollData;
+
+  // 计算实际滚动位置
+  const actualScrollTop = startIndex * this.itemHeight;
+
+  // 同步到其他区域
+  this.syncToOtherArea(actualScrollTop);
+}
+
+// 向虚拟滚动组件同步位置
+syncToVirtualScroll(targetScrollTop) {
+  const targetIndex = Math.floor(targetScrollTop / this.itemHeight);
+
+  // 使用虚拟滚动组件的API
+  if (this.$refs.virtualTable && this.$refs.virtualTable.scrollToIndex) {
+    this.$refs.virtualTable.scrollToIndex(targetIndex);
+  }
+}
+```
+
+### 虚拟滚动与普通滚动的桥接
+```javascript
+// 计算虚拟位置到实际像素位置的映射
+getVirtualScrollPosition(virtualData) {
+  return {
+    scrollTop: virtualData.startIndex * this.itemHeight,
+    visibleRange: {
+      start: virtualData.startIndex,
+      end: virtualData.endIndex
+    }
+  };
+}
+
+// 计算实际像素位置到虚拟位置的映射
+getPixelToVirtualPosition(scrollTop) {
+  const startIndex = Math.floor(scrollTop / this.itemHeight);
+  const endIndex = startIndex + this.visibleItemCount;
+
+  return {
+    startIndex: Math.max(0, startIndex),
+    endIndex: Math.min(this.totalItems, endIndex)
+  };
+}
+```
+
+## 滚动性能优化
+
+### 节流和防抖
+```javascript
+import { throttle, debounce } from 'lodash';
+
+// 节流：限制执行频率
+handleScroll: throttle(function(event) {
+  this.syncScrollPosition(event);
+}, 16), // 约60fps
+
+// 防抖：延迟执行，适用于滚动结束后的操作
+handleScrollEnd: debounce(function(event) {
+  this.updateVisibleItems();
+  this.lazyLoadImages();
+}, 150)
+```
+
+### 使用RequestAnimationFrame
+```javascript
+handleScroll(event) {
+  if (this.animationFrameId) {
+    cancelAnimationFrame(this.animationFrameId);
+  }
+
+  this.animationFrameId = requestAnimationFrame(() => {
+    this.performScrollSync(event);
+  });
+}
+```
+
+### 避免重复计算
+```javascript
+data() {
+  return {
+    cachedScrollElements: new Map(),
+    lastScrollPositions: new Map()
+  }
+},
+methods: {
+  getCachedScrollElement(key) {
+    if (!this.cachedScrollElements.has(key)) {
+      const element = this.findScrollElement(key);
+      this.cachedScrollElements.set(key, element);
+    }
+    return this.cachedScrollElements.get(key);
+  },
+
+  hasScrollPositionChanged(key, newPosition) {
+    const lastPosition = this.lastScrollPositions.get(key);
+    if (lastPosition !== newPosition) {
+      this.lastScrollPositions.set(key, newPosition);
+      return true;
+    }
+    return false;
+  }
+}
+```
+
+## 滚动边界处理
+
+### 滚动范围限制
+```javascript
+constrainScrollPosition(element, scrollTop, scrollLeft) {
+  const maxScrollTop = element.scrollHeight - element.clientHeight;
+  const maxScrollLeft = element.scrollWidth - element.clientWidth;
+
+  return {
+    scrollTop: Math.max(0, Math.min(scrollTop, maxScrollTop)),
+    scrollLeft: Math.max(0, Math.min(scrollLeft, maxScrollLeft))
+  };
+}
+```
+
+### 边界到达检测
+```javascript
+detectScrollBoundary(element) {
+  const { scrollTop, scrollLeft, scrollHeight, scrollWidth, clientHeight, clientWidth } = element;
+
+  return {
+    atTop: scrollTop <= 0,
+    atBottom: scrollTop >= scrollHeight - clientHeight - 1,
+    atLeft: scrollLeft <= 0,
+    atRight: scrollLeft >= scrollWidth - clientWidth - 1
+  };
+}
+```
+
+## 跨组件滚动协调
+
+### 使用事件总线
+```javascript
+// 创建滚动事件总线
+const ScrollEventBus = new Vue();
+
+// 组件A发送滚动事件
+ScrollEventBus.$emit('scroll-sync', {
+  source: 'gantt-chart',
+  scrollTop: 100,
+  scrollLeft: 200
+});
+
+// 组件B监听滚动事件
+mounted() {
+  ScrollEventBus.$on('scroll-sync', this.handleExternalScroll);
+},
+beforeDestroy() {
+  ScrollEventBus.$off('scroll-sync', this.handleExternalScroll);
+}
+```
+
+### 使用Vuex管理滚动状态
+```javascript
+// store/modules/scroll.js
+const scrollModule = {
+  state: {
+    ganttScrollPosition: { top: 0, left: 0 },
+    tableScrollPosition: { top: 0, left: 0 }
+  },
+  mutations: {
+    SET_GANTT_SCROLL(state, position) {
+      state.ganttScrollPosition = { ...position };
+    },
+    SET_TABLE_SCROLL(state, position) {
+      state.tableScrollPosition = { ...position };
+    }
+  },
+  actions: {
+    syncScroll({ commit }, { source, position }) {
+      if (source === 'gantt') {
+        commit('SET_GANTT_SCROLL', position);
+      } else if (source === 'table') {
+        commit('SET_TABLE_SCROLL', position);
+      }
+    }
+  }
+};
+```
+
+## 滚动状态持久化
+
+### 保存和恢复滚动位置
+```javascript
+// 保存滚动位置到localStorage
+saveScrollPosition() {
+  const scrollState = {
+    ganttTop: this.$refs.ganttContainer.scrollTop,
+    ganttLeft: this.$refs.ganttContainer.scrollLeft,
+    tableTop: this.$refs.tableContainer.scrollTop
+  };
+  localStorage.setItem('gantt-scroll-state', JSON.stringify(scrollState));
+},
+
+// 恢复滚动位置
+restoreScrollPosition() {
+  const saved = localStorage.getItem('gantt-scroll-state');
+  if (saved) {
+    const scrollState = JSON.parse(saved);
+    this.$nextTick(() => {
+      if (this.$refs.ganttContainer) {
+        this.$refs.ganttContainer.scrollTop = scrollState.ganttTop || 0;
+        this.$refs.ganttContainer.scrollLeft = scrollState.ganttLeft || 0;
+      }
+      if (this.$refs.tableContainer) {
+        this.$refs.tableContainer.scrollTop = scrollState.tableTop || 0;
+      }
+    });
+  }
+}
+```
+
+## 常见滚动问题诊断
+
+### 滚动不同步
+1. 检查事件监听器是否正确绑定
+2. 确认DOM元素引用是否正确
+3. 验证滚动元素的CSS overflow属性
+4. 检查是否有阻止事件传播的代码
+
+### 滚动抖动
+1. 检查是否存在循环触发
+2. 确认节流/防抖设置是否合理
+3. 验证滚动位置计算是否精确
+4. 检查浏览器兼容性问题
+
+### 滚动性能问题
+1. 使用Performance面板分析滚动事件处理时间
+2. 检查是否存在不必要的DOM查询
+3. 确认是否正确使用了虚拟滚动
+4. 验证是否有内存泄漏问题

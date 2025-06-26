@@ -1,0 +1,14 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Gantt 数据与依赖线渲染规则
+
+- 甘特图的任务数据（tasks）应通过`flattenTasks`（由`ganttData`扁平化生成）传递给[GanttBars.vue](mdc:src/components/GanttBars.vue)。
+- 依赖关系数据（dependencies）应通过store全局响应式管理，并作为props传递给[GanttBars.vue](mdc:src/components/GanttBars.vue)。
+- 依赖线的渲染依赖于`flattenTasks`和`dependencies`的正确对应，直接传递树形结构（如`ganttData`）会导致依赖线渲染失效。
+- 任何涉及依赖线编辑、保存、刷新等操作，均需保证`dependency-updated`事件被主视图监听，并调用`refreshChart`强制刷新甘特视图。
+- 相关主流程见[GanttChart.vue](mdc:src/components/GanttChart.vue)和[GanttBars.vue](mdc:src/components/GanttBars.vue)。
+
+> 本规则用于指导甘特任务与依赖线数据流的正确实现，防止因数据结构或事件流变更导致依赖线消失或不同步。

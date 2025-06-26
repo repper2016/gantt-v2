@@ -1,0 +1,446 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+## ⚠️ 中文使用规范
+
+- 所有代码中（提示语、默认值、字符串等）禁止使用中文，除非明确要求
+- 所有注释必须使用中文，解释逻辑、字段用途或流程含义
+
+## 🎯 总体目标
+
+- 避免出现阻断性错误，提升代码健壮性
+- 规范代码风格，提高可维护性
+- 保证兼容 Vue2, Vue3, React 等多框架
+- 尽量防止 undefined/null/NaN 等异常导致运行崩溃
+
+---
+
+## 🚫 禁止在模板/JSX中直接调用函数导致性能问题
+
+```vue
+<!-- ❌ 错误示例，模板每次渲染都会调用函数，性能低且易报错 -->
+<template>
+  <div>{{ getTitle() }}</div>
+</template>
+<script>
+export default {
+  methods: {
+    getTitle() {
+      return this.title.toUpperCase();
+    }
+  }
+}
+</script>
+```
+
+```vue
+<!-- ✅ 推荐写法，使用计算属性缓存结果 -->
+<template>
+  <div>{{ computedTitle }}</div>
+</template>
+<script>
+export default {
+  computed: {
+    computedTitle() {
+      return this.title.toUpperCase();
+    }
+  }
+}
+</script>
+```
+
+---
+
+## 🔥 字段验证必须全面，防止 undefined 报错
+
+```js
+export default {
+  props: {
+    name: {
+      type: String,
+      required: true,
+      default: ''
+    },
+    age: {
+      type: Number,
+      default: 0
+    }
+  }
+}
+```
+
+---
+
+## 🛡 异步请求统一加 try/catch，防止崩溃
+
+```js
+async fetchData() {
+  try {
+    const res = await api.getUser();
+    this.user = res?.data || {};
+  } catch (error) {
+    this.$message?.error('Request failed');
+  }
+}
+```
+
+---
+
+## 💬 代码注释必须中文示例
+
+```js
+// 获取用户列表数据
+async function fetchUsers() {
+  try {
+    const res = await api.getUsers();
+    // 如果接口返回为空，默认空数组
+    const list = res?.data || [];
+    return list;
+  } catch (e) {
+    // 请求失败，打印错误日志
+    console.error('获取用户列表失败', e);
+    return [];
+  }
+}
+```
+
+---
+
+## ⚠️ 避免使用 JSON.parse(JSON.stringify(...)) 导致深拷贝失败
+
+```js
+// ❌ 错误示例：JSON.stringify 无法复制函数、undefined，且会抛出循环引用错误
+const obj = {
+  name: 'test',
+  fn: () => console.log('hello'),
+  a: undefined
+};
+obj.self = obj; // 循环引用
+
+try {
+  const copy = JSON.parse(JSON.stringify(obj)); // 报错：循环引用
+} catch (e) {
+  console.error('深拷贝失败', e);
+}
+```
+
+```js
+// ✅ 推荐写法：使用 lodash 深拷贝或手写递归
+import cloneDeep from 'lodash/cloneDeep';
+
+const copy = cloneDeep(obj);
+```
+
+---
+
+## ⚠️ 防止 JSON.parse(null) 导致异常崩溃
+
+```js
+// ❌ 错误示例，传入 null 会报错
+const data = null;
+try {
+  const parsed = JSON.parse(data); // 抛出异常：Unexpected token u in JSON at position 0
+} catch (e) {
+  console.error('JSON.parse 失败', e);
+}
+```
+
+```js
+// ✅ 推荐写法，先做类型和空值判断
+const data = null;
+try {
+  const parsed = typeof data === 'string' && data ? JSON.parse(data) : {};
+} catch (e) {
+  console.error('JSON.parse 失败', e);
+}
+```
+
+---
+
+## ⚠️ 防止 undefined / null / NaN 导致的前端错误及示范
+
+### 变量访问安全
+
+```js
+// ❌ 错误示例：直接访问可能报错
+const len = data.list.length; // data 或 list 可能未定义
+
+// ✅ 推荐写法：使用可选链和默认值
+const len = data?.list?.length ?? 0;
+```
+
+### JSON.parse 安全处理
+
+```js
+// ❌ 错误示例：解析 null 会抛异常
+const jsonStr = null;
+const obj = JSON.parse(jsonStr);
+
+// ✅ 推荐写法：先判断类型和空值
+const obj = typeof jsonStr === 'string' && jsonStr ? JSON.parse(jsonStr) : {};
+```
+
+### NaN 判定与处理
+
+```js
+// ❌ 错误示例：NaN 参与计算导致结果异常
+let val = Number('abc');
+let result = val + 10; // NaN
+
+// ✅ 推荐写法：判断是否 NaN，使用默认值
+let val = Number('abc');
+let safeVal = Number.isNaN(val) ? 0 : val;
+let result = safeVal + 10;
+```
+
+### 函数参数默认值
+
+```js
+// ❌ 错误示例：未传参数报错
+function greet(name) {
+  console.log('Hello ' + name.toUpperCase());
+}
+
+// ✅ 推荐写法：参数默认值
+function greet(name = '') {
+  console.log('Hello ' + name.toUpperCase());
+}
+```
+
+### 安全遍历数组
+
+```js
+// ❌ 错误示例：dataList 未定义报错
+dataList.forEach(item => console.log(item.name));
+
+// ✅ 推荐写法：判断数组有效性
+if (Array.isArray(dataList) && dataList.length) {
+  dataList.forEach(item => console.log(item.name));
+}
+```
+
+---
+
+## ⚠️ 防止前端常见阻断性错误及规范示范
+
+### 1. 防止未捕获的 Promise 异常
+
+```js
+// ❌ 错误示例：异步函数无 try/catch，异常未处理
+async function fetchData() {
+  const res = await api.getData(); // 如果请求失败，会抛异常导致崩溃
+  return res.data;
+}
+
+// ✅ 推荐写法：加 try/catch 捕获异常
+async function fetchData() {
+  try {
+    const res = await api.getData();
+    return res.data;
+  } catch (e) {
+    console.error('fetchData error:', e);
+    return null;
+  }
+}
+```
+
+### 2. 防止事件监听器泄漏，避免内存泄漏
+
+```js
+// ❌ 错误示例：事件监听没有解绑
+mounted() {
+  window.addEventListener('resize', this.onResize);
+}
+// 组件销毁时未解绑，导致内存泄漏和异常
+
+// ✅ 推荐写法：组件销毁时解绑
+mounted() {
+  window.addEventListener('resize', this.onResize);
+},
+beforeDestroy() {
+  window.removeEventListener('resize', this.onResize);
+}
+```
+
+### 3. Vue / React 中表单绑定避免 undefined/null
+
+```vue
+<!-- Vue 示例 -->
+<!-- ❌ 错误示例：v-model 绑定未定义变量 -->
+<input v-model="form.name" />
+
+<script>
+export default {
+  data() {
+    return {
+      form: {}
+    }
+  }
+}
+</script>
+
+<!-- ✅ 推荐写法：初始化所有表单字段 -->
+<script>
+export default {
+  data() {
+    return {
+      form: {
+        name: ''
+      }
+    }
+  }
+}
+</script>
+```
+
+```jsx
+// React 示例
+// ❌ 错误示例：受控组件 value 绑定 undefined
+<input value={form.name} onChange={handleChange} />
+
+// ✅ 推荐写法：确保初始值不是 undefined
+const [form, setForm] = React.useState({ name: '' });
+```
+
+### 4. 防止模板中表达式异常导致渲染失败
+
+```vue
+<!-- ❌ 错误示例：表达式中直接访问未定义属性 -->
+<div>{{ user.profile.name }}</div> <!-- user 或 profile 可能未定义，导致渲染报错 -->
+
+<!-- ✅ 推荐写法：使用可选链 -->
+<div>{{ user?.profile?.name ?? '' }}</div>
+```
+
+### 5. 数据异步加载时显示加载状态，避免空白页面
+
+```vue
+<template>
+  <div v-if="loading">Loading...</div>
+  <div v-else-if="error">{{ errorMessage }}</div>
+  <div v-else>
+    <!-- 正常渲染内容 -->
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      loading: false,
+      error: false,
+      errorMessage: '',
+      data: null,
+    };
+  },
+  async mounted() {
+    this.loading = true;
+    try {
+      this.data = await fetchData();
+    } catch (e) {
+      this.error = true;
+      this.errorMessage = 'Failed to load data';
+    } finally {
+      this.loading = false;
+    }
+  }
+};
+</script>
+```
+
+---
+
+## 💡 注释规范示例
+
+```js
+// 计算用户年龄，传入出生年份，返回整数
+function calculateAge(birthYear) {
+  // 当前年份
+  const currentYear = new Date().getFullYear();
+  return currentYear - birthYear;
+}
+## ⚠️ 防御式编程：检查 undefined/null/NaN
+
+```js
+function safeAdd(a, b) {
+  if (typeof a !== 'number' || typeof b !== 'number') return 0;
+  return a + b;
+}
+
+function safeAccess(obj, path, defaultValue = '') {
+  return path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : defaultValue), obj);
+}
+```
+
+---
+
+## ✅ 保证代码质量的规范
+
+### 1. 命名规范
+
+- 驼峰命名（camelCase）
+- 常量大写下划线（UPPER_SNAKE_CASE）
+- 文件小写短横线（kebab-case）
+
+```js
+const userName = '张三';
+const MAX_COUNT = 100;
+
+function fetchData() {}
+```
+
+### 2. 单一职责函数
+
+```js
+function validateData(data) {}
+function saveToDB(data) {}
+function sendNotification(data) {}
+```
+
+### 3. 避免重复代码
+
+- 公共逻辑抽离函数或工具模块
+
+### 4. 注释规范
+
+- 中文注释
+- 注释解释字段含义、逻辑或约束条件
+
+```js
+// 计算年龄，传入出生年份
+function calculateAge(birthYear) {
+  const currentYear = new Date().getFullYear();
+  return currentYear - birthYear;
+}
+```
+
+### 5. 代码风格
+
+- 每行 ≤ 120 字符
+- 使用 const/let，避免 var
+- 所有代码块使用大括号
+
+### 6. 禁用魔法数字和字符串
+performance-bar
+```js
+// ❌
+if (status === 3) {}
+
+// ✅
+const STATUS_SUCCESS = 3;
+if (status === STATUS_SUCCESS) {}
+```
+### 7. 任何时候都要考虑性能
+### 8. 涉及到相关变化的时候要及时更新文档和测试数据
+### 9. 即时通过MCP查看浏览器日志
+### 10.如果不涉及到webpack.config,babelrc等配置文件的修改则不需要频繁重启
+### 11.如果npm有现成组件尽可能去使用，不必完全自己开发
+### 12.无效代码要即时删除，避免代码冗余
+### 13.修改新增代码前先查找当前项目有没有已存在的或注释掉的代码
+### 14.注意定义的字段在data或计算属性等不要和vuex store里的state，getter等重名
+### 15.任何情况下开始时间不能大于结束时间这个必须验证
+### 16.既定数字类型/数组/日期等，数据类型必须加校验
+
+---

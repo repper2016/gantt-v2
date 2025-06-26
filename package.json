@@ -1,0 +1,72 @@
+{
+  "name": "vue-gantt-project",
+  "version": "1.0.0",
+  "description": "Vue 2.0 Gantt Chart Project - Optimized for Performance",
+  "main": "index.js",
+  "scripts": {
+    "serve": "vue-cli-service serve --mode development",
+    "build": "vue-cli-service build --mode production",
+    "build:analyze": "vue-cli-service build --mode production --analyze",
+    "dev": "webpack-dev-server --mode development",
+    "dev:hot": "webpack-dev-server --mode development --hot",
+    "analyze": "webpack-bundle-analyzer dist/static/js/*.js",
+    "performance:test": "lighthouse http://localhost:8080 --output json --output html --output-path ./performance-report",
+    "lint": "eslint src --ext .js,.vue --fix",
+    "test:performance": "npm run build && npm run performance:test"
+  },
+  "dependencies": {
+    "element-ui": "^2.15.14",
+    "moment": "^2.29.4",
+    "sortablejs": "^1.15.6",
+    "vue": "^2.6.14",
+    "vue-router": "^3.5.4",
+    "vuex": "^3.6.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.5",
+    "@babel/plugin-syntax-dynamic-import": "^7.8.3",
+    "@babel/plugin-transform-runtime": "^7.22.5",
+    "@babel/preset-env": "^7.22.5",
+    "@vue/cli-service": "^5.0.8",
+    "babel-loader": "^9.1.2",
+    "babel-plugin-component": "^1.1.1",
+    "babel-plugin-transform-remove-console": "^6.9.4",
+    "compression-webpack-plugin": "^10.0.0",
+    "core-js": "^3.32.0",
+    "css-loader": "^6.8.1",
+    "eslint": "^8.45.0",
+    "eslint-plugin-vue": "^9.15.1",
+    "html-webpack-plugin": "^5.5.3",
+    "lighthouse": "^10.4.0",
+    "sass": "^1.89.2",
+    "sass-loader": "^16.0.5",
+    "speed-measure-webpack-plugin": "^1.5.0",
+    "style-loader": "^3.3.3",
+    "terser-webpack-plugin": "^5.3.9",
+    "vue-loader": "^15.10.1",
+    "vue-template-compiler": "^2.6.14",
+    "webpack": "^5.88.0",
+    "webpack-bundle-analyzer": "^4.9.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "vue",
+    "gantt",
+    "chart",
+    "project-management",
+    "performance-optimized"
+  ],
+  "author": "Vue Gantt Team",
+  "license": "MIT"
+}

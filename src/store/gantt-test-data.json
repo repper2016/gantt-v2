@@ -1,0 +1,248 @@
+{
+  "tasks": [
+    {
+      "id": "milestone-1",
+      "name": "EP1_RT3 Define development scope requirement",
+      "type": "milestone",
+      "color": "#e53935",
+      "startDate": "2023-01-01",
+      "endDate": "2023-01-01",
+      "progress": 23,
+      "assignee": "Zhou Sheng",
+      "priority": "Major",
+      "children": []
+    },
+    {
+      "id": "deliverable-1",
+      "name": "EP1_RT3",
+      "type": "deliverable",
+      "color": "#1976d2",
+      "startDate": "2023-01-01",
+      "endDate": "2023-02-15",
+      "progress": 0,
+      "assignee": "Zhou Sheng",
+      "priority": "Major",
+      "children": [
+        {
+          "id": "task-1-1",
+          "name": "Define development scope requirement",
+          "type": "task",
+          "color": "#42a5f5",
+          "startDate": "2023-01-01",
+          "endDate": "2023-01-05",
+          "progress": 67,
+          "assignee": "Zhou Sheng",
+          "priority": "Major",
+          "children": []
+        },
+        {
+          "id": "task-1-2",
+          "name": "Implement defined development scope",
+          "type": "task",
+          "color": "#42a5f5",
+          "startDate": "2023-01-06",
+          "endDate": "2023-01-15",
+          "progress": 12,
+          "assignee": "Zhou Sheng",
+          "priority": "Major",
+          "children": []
+        },
+        {
+          "id": "task-1-3",
+          "name": "Verify implementation",
+          "type": "task",
+          "color": "#90caf9",
+          "startDate": "2023-01-16",
+          "endDate": "2023-01-20",
+          "progress": 88,
+          "assignee": "Zhou Sheng",
+          "priority": "Major",
+          "children": []
+        },
+        {
+          "id": "task-1-4",
+          "name": "Deliver and release library to LIA",
+          "type": "task",
+          "color": "#bdbdbd",
+          "startDate": "2023-01-21",
+          "endDate": "2023-01-25",
+          "progress": 54,
+          "assignee": "Zhou Sheng",
+          "priority": "Major",
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "milestone-2",
+      "name": "EP2_RT3 Define development scope requirement",
+      "type": "milestone",
+      "color": "#388e3c",
+      "startDate": "2023-02-01",
+      "endDate": "2023-02-01",
+      "progress": 77,
+      "assignee": "Zhou Sheng",
+      "priority": "Major",
+      "children": []
+    },
+    {
+      "id": "deliverable-2",
+      "name": "EP2_RT3",
+      "type": "deliverable",
+      "color": "#388e3c",
+      "startDate": "2023-02-01",
+      "endDate": "2023-03-15",
+      "progress": 0,
+      "assignee": "Zhou Sheng",
+      "priority": "Major",
+      "children": [
+        {
+          "id": "task-2-1",
+          "name": "Define development scope requirement",
+          "type": "task",
+          "color": "#66bb6a",
+          "startDate": "2023-02-01",
+          "endDate": "2023-02-05",
+          "progress": 34,
+          "assignee": "Zhou Sheng",
+          "priority": "Major",
+          "children": []
+        },
+        {
+          "id": "task-2-2",
+          "name": "Implement defined development scope",
+          "type": "task",
+          "color": "#66bb6a",
+          "startDate": "2023-02-06",
+          "endDate": "2023-02-15",
+          "progress": 91,
+          "assignee": "Zhou Sheng",
+          "priority": "Major",
+          "children": []
+        },
+        {
+          "id": "task-2-3",
+          "name": "Verify implementation",
+          "type": "task",
+          "color": "#bdbdbd",
+          "startDate": "2023-02-16",
+          "endDate": "2023-02-20",
+          "progress": 7,
+          "assignee": "Zhou Sheng",
+          "priority": "Major",
+          "children": []
+        },
+        {
+          "id": "task-2-4",
+          "name": "Deliver and release library to LIA",
+          "type": "task",
+          "color": "#bdbdbd",
+          "startDate": "2023-02-21",
+          "endDate": "2023-02-25",
+          "progress": 60,
+          "assignee": "Zhou Sheng",
+          "priority": "Major",
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "milestone-3",
+      "name": "EP3_RT3 Define development scope requirement",
+      "type": "milestone",
+      "color": "#ffb300",
+      "startDate": "2023-03-01",
+      "endDate": "2023-03-01",
+      "progress": 41,
+      "assignee": "Zhou Sheng",
+      "priority": "Major",
+      "children": []
+    },
+    {
+      "id": "deliverable-3",
+      "name": "EP3_RT3",
+      "type": "deliverable",
+      "color": "#8e24aa",
+      "startDate": "2023-03-01",
+      "endDate": "2023-04-15",
+      "progress": 0,
+      "assignee": "Zhou Sheng",
+      "priority": "Major",
+      "children": [
+        {
+          "id": "task-3-1",
+          "name": "Define development scope requirement",
+          "type": "task",
+          "color": "#ba68c8",
+          "startDate": "2023-03-01",
+          "endDate": "2023-03-05",
+          "progress": 73,
+          "assignee": "Zhou Sheng",
+          "priority": "Major",
+          "children": []
+        },
+        {
+          "id": "task-3-2",
+          "name": "Implement defined development scope",
+          "type": "task",
+          "color": "#ba68c8",
+          "startDate": "2023-03-06",
+          "endDate": "2023-03-15",
+          "progress": 19,
+          "assignee": "Zhou Sheng",
+          "priority": "Major",
+          "children": []
+        },
+        {
+          "id": "task-3-3",
+          "name": "Verify implementation",
+          "type": "task",
+          "color": "#bdbdbd",
+          "startDate": "2023-03-16",
+          "endDate": "2023-03-20",
+          "progress": 99,
+          "assignee": "Zhou Sheng",
+          "priority": "Major",
+          "children": []
+        },
+        {
+          "id": "task-3-4",
+          "name": "Deliver and release library to LIA",
+          "type": "task",
+          "color": "#bdbdbd",
+          "startDate": "2023-03-21",
+          "endDate": "2023-03-25",
+          "progress": 45,
+          "assignee": "Zhou Sheng",
+          "priority": "Major",
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "milestone-4",
+      "name": "LIA A24 X11 master plan",
+      "type": "milestone",
+      "color": "#388e3c",
+      "startDate": "2023-04-01",
+      "endDate": "2023-04-01",
+      "progress": 58,
+      "assignee": "Zhou Sheng",
+      "priority": "Major",
+      "children": []
+    }
+  ],
+  "dependencies": [
+    { "from": "task-1-1", "to": "task-1-2", "type": "FS", "lag": 2, "color": "#1976d2" },
+    { "from": "task-1-2", "to": "task-1-3", "type": "FF", "lag": -4, "color": "#1976d2" },
+    { "from": "task-1-3", "to": "task-1-4", "type": "FS", "lag": 1, "color": "#1976d2" },
+    { "from": "task-2-1", "to": "task-2-2", "type": "FS", "lag": 0, "color": "#1976d2" },
+    { "from": "task-2-2", "to": "task-2-3", "type": "SS", "lag": 3, "color": "#1976d2" },
+    { "from": "task-2-3", "to": "task-2-4", "type": "FS", "lag": -2, "color": "#1976d2" },
+    { "from": "task-3-1", "to": "task-3-2", "type": "FS", "lag": 4, "color": "#1976d2" },
+    { "from": "task-3-2", "to": "task-3-3", "type": "SF", "lag": -3, "color": "#1976d2" },
+    { "from": "task-3-3", "to": "task-3-4", "type": "FS", "lag": 0, "color": "#1976d2" },
+    { "from": "task-1-4", "to": "task-2-1", "type": "FS", "lag": 1, "color": "#1976d2" },
+    { "from": "task-2-4", "to": "task-3-1", "type": "FS", "lag": 2, "color": "#1976d2" }
+  ]
+}

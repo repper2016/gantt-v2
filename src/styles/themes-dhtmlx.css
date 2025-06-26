@@ -1,0 +1,648 @@
+/* =========================================================
+   DHTMLX 风格甘特图主题 - 极简高性能版本
+   设计原则：简洁、高密度、极致UX、高性能
+   ========================================================= */
+
+/* ===== DHTMLX 主题基础变量 ===== */
+.gantt-theme-dhtmlx {
+  /* Jira风格配色方案 - 现代专业外观 */
+  --gantt-color-primary: #0052cc;
+  --gantt-color-primary-dark: #0043a3;
+  --gantt-color-primary-light: #2684ff;
+
+  --gantt-color-secondary: #6b778c;
+  --gantt-color-success: #00875a;
+  --gantt-color-warning: #ff8b00;
+  --gantt-color-error: #de350b;
+  --gantt-color-info: #0065ff;
+
+  /* Jira风格文字颜色 - 更好的可读性 */
+  --gantt-text-primary: #172b4d;
+  --gantt-text-secondary: #5e6c84;
+  --gantt-text-muted: #97a0af;
+  --gantt-text-inverse: #ffffff;
+
+  /* Jira风格背景色 - 层次分明 */
+  --gantt-bg-primary: #ffffff;
+  --gantt-bg-secondary: #f4f5f7;
+  --gantt-bg-tertiary: #ebecf0;
+  --gantt-bg-hover: #f4f5f7;
+  --gantt-bg-selected: rgba(0, 82, 204, 0.1);
+
+  /* Jira风格边框 - 柔和且清晰 */
+  --gantt-border-color: #dfe1e6;
+  --gantt-border-color-light: #f4f5f7;
+  --gantt-border-color-dark: #c1c7d0;
+
+  /* Jira风格阴影 - 增强层次感 */
+  --gantt-shadow-sm: 0 1px 2px rgba(9, 30, 66, 0.08);
+  --gantt-shadow-md: 0 2px 4px rgba(9, 30, 66, 0.12);
+  --gantt-shadow-lg: 0 4px 8px rgba(9, 30, 66, 0.16);
+
+  /* Jira风格尺寸 - 平衡密度与可读性 */
+  --gantt-task-height: 24px;
+  --gantt-row-height: 36px;
+  --gantt-header-height: 44px;
+  --gantt-timeline-cell-width: 60px;
+  --gantt-controls-height: 96px;
+
+  /* Jira风格间距 - 更舒适的视觉体验 */
+  --gantt-spacing-xs: 4px;
+  --gantt-spacing-sm: 8px;
+  --gantt-spacing-md: 12px;
+  --gantt-spacing-lg: 16px;
+  --gantt-spacing-xl: 24px;
+
+  /* Jira风格字体 - 增强可读性 */
+  --gantt-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --gantt-font-size-xs: 12px;
+  --gantt-font-size-sm: 13px;
+  --gantt-font-size-md: 14px;
+  --gantt-font-size-lg: 15px;
+  --gantt-line-height-compact: 1.3;
+  --gantt-line-height-normal: 1.4;
+
+  /* 高性能动画 */
+  --gantt-transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --gantt-transition-normal: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 任务条优化样式 */
+  --gantt-task-bg: var(--gantt-color-primary);
+  --gantt-task-border: var(--gantt-color-primary-dark);
+  --gantt-task-text: var(--gantt-text-inverse);
+  --gantt-task-progress-bg: rgba(255, 255, 255, 0.25);
+  --gantt-task-milestone-bg: var(--gantt-color-warning);
+  --gantt-task-parent-bg: var(--gantt-color-secondary);
+
+  /* 网格优化 */
+  --gantt-grid-bg: var(--gantt-bg-primary);
+  --gantt-grid-border: var(--gantt-border-color);
+  --gantt-grid-header-bg: var(--gantt-bg-secondary);
+  --gantt-grid-row-hover-bg: var(--gantt-bg-hover);
+  --gantt-grid-row-selected-bg: var(--gantt-bg-selected);
+
+  /* 时间轴优化 */
+  --gantt-timeline-bg: var(--gantt-bg-primary);
+  --gantt-timeline-border: var(--gantt-border-color);
+  --gantt-timeline-header-bg: var(--gantt-bg-secondary);
+  --gantt-timeline-weekend-bg: rgba(0, 0, 0, 0.015);
+  --gantt-timeline-today-bg: rgba(74, 144, 226, 0.06);
+
+  /* 依赖关系线条 */
+  --gantt-link-color: var(--gantt-color-secondary);
+  --gantt-link-hover-color: var(--gantt-color-primary);
+  --gantt-link-width: 1px;
+
+  /* Jira风格按钮样式 - 现代圆润设计 */
+  --gantt-btn-height: 36px;
+  --gantt-btn-padding: 0 16px;
+  --gantt-btn-border-radius: 6px;
+}
+
+/* ===== DHTMLX 主题核心样式 ===== */
+.gantt-theme-dhtmlx .gantt-chart {
+  font-family: var(--gantt-font-family);
+  font-size: var(--gantt-font-size-md);
+  line-height: var(--gantt-line-height-normal);
+  color: var(--gantt-text-primary);
+  background: var(--gantt-bg-primary);
+
+  /* 启用GPU加速 */
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* 控制面板优化 */
+.gantt-theme-dhtmlx .gantt-controls {
+  height: var(--gantt-controls-height);
+  padding: var(--gantt-spacing-sm) var(--gantt-spacing-md);
+  background: var(--gantt-bg-secondary);
+  border-bottom: 1px solid var(--gantt-border-color);
+  display: flex;
+  align-items: center;
+  gap: var(--gantt-spacing-md);
+  flex-wrap: wrap;
+}
+
+.gantt-theme-dhtmlx .gantt-controls .btn {
+  height: var(--gantt-btn-height);
+  padding: var(--gantt-btn-padding);
+  border-radius: var(--gantt-btn-border-radius);
+  font-size: var(--gantt-font-size-sm);
+  font-weight: 500;
+  border: 1px solid var(--gantt-border-color);
+  background: var(--gantt-bg-primary);
+  color: var(--gantt-text-primary);
+  cursor: pointer;
+  transition: all var(--gantt-transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gantt-spacing-xs);
+  white-space: nowrap;
+}
+
+.gantt-theme-dhtmlx .gantt-controls .btn:hover {
+  background: var(--gantt-bg-hover);
+  border-color: var(--gantt-border-color-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--gantt-shadow-sm);
+}
+
+.gantt-theme-dhtmlx .gantt-controls .btn-primary {
+  background: var(--gantt-color-primary);
+  color: var(--gantt-text-inverse);
+  border-color: var(--gantt-color-primary);
+}
+
+.gantt-theme-dhtmlx .gantt-controls .btn-primary:hover {
+  background: var(--gantt-color-primary-dark);
+  border-color: var(--gantt-color-primary-dark);
+}
+
+/* 日期选择器优化 */
+.gantt-theme-dhtmlx .date-range-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--gantt-spacing-sm);
+}
+
+.gantt-theme-dhtmlx .date-range-group {
+  display: flex;
+  align-items: center;
+  gap: var(--gantt-spacing-sm);
+}
+
+.gantt-theme-dhtmlx .date-range-group label {
+  font-size: var(--gantt-font-size-sm);
+  color: var(--gantt-text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 主体区域优化 */
+.gantt-theme-dhtmlx .gantt-main {
+  display: flex;
+  height: calc(100vh - var(--gantt-controls-height) - 1px);
+  background: var(--gantt-bg-primary);
+}
+
+/* 左侧面板优化 */
+.gantt-theme-dhtmlx .gantt-left {
+  border-right: 1px solid var(--gantt-border-color);
+  background: var(--gantt-bg-primary);
+  overflow: hidden;
+}
+
+/* 表格头部优化 */
+.gantt-theme-dhtmlx .gantt-table-header {
+  height: var(--gantt-header-height);
+  background: var(--gantt-grid-header-bg);
+  border-bottom: 1px solid var(--gantt-border-color);
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: var(--gantt-font-size-sm);
+  color: var(--gantt-text-secondary);
+}
+
+.gantt-theme-dhtmlx .gantt-table-header .header-cell {
+  padding: 0 var(--gantt-spacing-md);
+  border-right: 1px solid var(--gantt-border-color-light);
+  display: flex;
+  align-items: center;
+  height: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+/* 表格行优化 */
+.gantt-theme-dhtmlx .gantt-table-row {
+  height: var(--gantt-row-height);
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--gantt-border-color-light);
+  transition: background-color var(--gantt-transition-fast);
+  cursor: pointer;
+}
+
+.gantt-theme-dhtmlx .gantt-table-row:hover {
+  background: var(--gantt-bg-hover);
+}
+
+.gantt-theme-dhtmlx .gantt-table-row.selected {
+  background: var(--gantt-bg-selected);
+  font-weight: 500;
+  color: var(--gantt-color-primary-dark);
+}
+
+.gantt-theme-dhtmlx .gantt-table-row .table-cell {
+  padding: 0 var(--gantt-spacing-md);
+  border-right: 1px solid var(--gantt-border-color-light);
+  display: flex;
+  align-items: center;
+  height: 100%;
+  font-size: var(--gantt-font-size-md);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 任务名称单元格 */
+.gantt-theme-dhtmlx .task-name-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--gantt-spacing-xs);
+  width: 100%;
+}
+
+.gantt-theme-dhtmlx .collapse-btn {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--gantt-text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all var(--gantt-transition-fast);
+}
+
+.gantt-theme-dhtmlx .collapse-btn:hover {
+  background: var(--gantt-bg-hover);
+  color: var(--gantt-text-primary);
+}
+
+/* 进度条优化 */
+.gantt-theme-dhtmlx .progress-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--gantt-spacing-sm);
+  width: 100%;
+}
+
+.gantt-theme-dhtmlx .progress-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--gantt-bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.gantt-theme-dhtmlx .progress-fill {
+  height: 100%;
+  background: var(--gantt-color-primary);
+  border-radius: 4px;
+  transition: width var(--gantt-transition-normal);
+}
+
+.gantt-theme-dhtmlx .progress-text {
+  font-size: var(--gantt-font-size-xs);
+  color: var(--gantt-text-muted);
+  min-width: 32px;
+  text-align: right;
+}
+
+/* Jira风格状态标签 */
+.gantt-theme-dhtmlx .status-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: var(--gantt-font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: var(--gantt-shadow-sm);
+}
+
+.gantt-theme-dhtmlx .status-badge.not-started {
+  background: rgba(107, 119, 140, 0.15);
+  color: var(--gantt-color-secondary);
+  border: 1px solid rgba(107, 119, 140, 0.3);
+}
+
+.gantt-theme-dhtmlx .status-badge.in-progress {
+  background: rgba(0, 82, 204, 0.15);
+  color: var(--gantt-color-primary);
+  border: 1px solid rgba(0, 82, 204, 0.3);
+}
+
+.gantt-theme-dhtmlx .status-badge.completed {
+  background: rgba(0, 135, 90, 0.15);
+  color: var(--gantt-color-success);
+  border: 1px solid rgba(0, 135, 90, 0.3);
+}
+
+.gantt-theme-dhtmlx .status-badge.overdue {
+  background: rgba(222, 53, 11, 0.15);
+  color: var(--gantt-color-error);
+  border: 1px solid rgba(222, 53, 11, 0.3);
+}
+
+/* 右侧时间轴区域 */
+.gantt-theme-dhtmlx .gantt-right {
+  flex: 1;
+  overflow: hidden;
+  background: var(--gantt-timeline-bg);
+}
+
+/* 时间轴头部 */
+.gantt-theme-dhtmlx .gantt-timeline-header {
+  height: var(--gantt-header-height);
+  background: var(--gantt-timeline-header-bg);
+  border-bottom: 1px solid var(--gantt-border-color);
+  display: flex;
+  overflow: hidden;
+}
+
+.gantt-theme-dhtmlx .timeline-header-cell {
+  min-width: var(--gantt-timeline-cell-width);
+  border-right: 1px solid var(--gantt-border-color-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--gantt-font-size-xs);
+  font-weight: 600;
+  color: var(--gantt-text-secondary);
+  text-align: center;
+  padding: 0 var(--gantt-spacing-xs);
+}
+
+/* 时间轴内容区域 */
+.gantt-theme-dhtmlx .gantt-timeline-content {
+  height: calc(100% - var(--gantt-header-height));
+  overflow: auto;
+  position: relative;
+}
+
+.gantt-theme-dhtmlx .timeline-row {
+  height: var(--gantt-row-height);
+  border-bottom: 1px solid var(--gantt-border-color-light);
+  position: relative;
+  display: flex;
+}
+
+.gantt-theme-dhtmlx .timeline-cell {
+  min-width: var(--gantt-timeline-cell-width);
+  border-right: 1px solid var(--gantt-border-color-light);
+  position: relative;
+}
+
+.gantt-theme-dhtmlx .timeline-cell.weekend {
+  background-color: var(--gantt-timeline-weekend-bg, #fafafa);
+}
+
+.gantt-theme-dhtmlx .timeline-cell.today {
+  background-color: var(--gantt-timeline-today-bg);
+}
+
+/* Jira风格任务条样式 */
+.gantt-theme-dhtmlx .gantt-task-bar {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: var(--gantt-task-height);
+  background-color: var(--gantt-task-bg);
+  border: 1px solid var(--gantt-task-border);
+  color: var(--gantt-task-text);
+  border-radius: 6px;
+  box-shadow: var(--gantt-shadow-sm);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--gantt-spacing-md);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--gantt-font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--gantt-transition-fast);
+  box-sizing: border-box; /* 确保 padding 和 border 不会增加尺寸 */
+}
+
+.gantt-theme-dhtmlx .gantt-task-bar:hover {
+  filter: brightness(110%);
+  box-shadow: var(--gantt-shadow-md);
+  transform: translateY(-50%) translateZ(1px);
+}
+
+.gantt-theme-dhtmlx .gantt-task-bar.milestone {
+  background: var(--gantt-task-milestone-bg);
+  border-color: var(--gantt-color-warning);
+  border-radius: 50%;
+  width: var(--gantt-task-height);
+  padding: 0;
+  justify-content: center;
+  transform: translateY(-50%) rotate(45deg);
+  box-shadow: var(--gantt-shadow-md);
+}
+
+.gantt-theme-dhtmlx .gantt-task-bar.parent {
+  background: var(--gantt-task-parent-bg);
+  border-color: var(--gantt-color-secondary-dark);
+}
+
+/* 任务进度条 */
+.gantt-theme-dhtmlx .task-progress {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: var(--gantt-task-progress-bg);
+  border-radius: 2px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.1);
+  transition: width var(--gantt-transition-normal);
+}
+
+/* 依赖关系线条 */
+.gantt-theme-dhtmlx .gantt-link {
+  position: absolute;
+  stroke: var(--gantt-link-color);
+  stroke-width: var(--gantt-link-width);
+  fill: none;
+  pointer-events: none;
+}
+
+.gantt-theme-dhtmlx .gantt-link-arrow {
+  fill: var(--gantt-link-color);
+  stroke: var(--gantt-link-color);
+  stroke-width: 1;
+}
+
+.gantt-theme-dhtmlx .gantt-link:hover {
+  stroke: var(--gantt-link-hover-color);
+}
+.gantt-theme-dhtmlx .gantt-link:hover .gantt-link-arrow {
+  fill: var(--gantt-link-hover-color);
+  stroke: var(--gantt-link-hover-color);
+}
+
+/* Jira风格滚动条 */
+.gantt-theme-dhtmlx ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.gantt-theme-dhtmlx ::-webkit-scrollbar-track {
+  background: var(--gantt-bg-secondary);
+  border-radius: 4px;
+}
+
+.gantt-theme-dhtmlx ::-webkit-scrollbar-thumb {
+  background: var(--gantt-border-color-dark);
+  border-radius: 4px;
+  border: 2px solid var(--gantt-bg-secondary);
+}
+
+.gantt-theme-dhtmlx ::-webkit-scrollbar-thumb:hover {
+  background: var(--gantt-color-secondary);
+}
+
+/* 响应式优化 */
+@media (max-width: 1024px) {
+  .gantt-theme-dhtmlx {
+    --gantt-timeline-cell-width: 40px;
+    --gantt-font-size-md: 12px;
+    --gantt-font-size-sm: 11px;
+  }
+}
+
+@media (max-width: 768px) {
+  .gantt-theme-dhtmlx {
+    --gantt-row-height: 32px;
+    --gantt-task-height: 24px;
+    --gantt-header-height: 40px;
+    --gantt-controls-height: 100px;
+  }
+}
+
+/* 性能优化类 */
+.gantt-theme-dhtmlx .performance-optimized {
+  /* 启用硬件加速 */
+  transform: translateZ(0);
+  will-change: transform;
+
+  /* 优化重绘 */
+  contain: layout style paint;
+}
+
+.gantt-theme-dhtmlx .gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* 高密度模式 */
+.gantt-theme-dhtmlx.gantt-density-ultra-compact {
+  --gantt-task-height: 16px;
+  --gantt-row-height: 24px;
+  --gantt-header-height: 32px;
+  --gantt-timeline-cell-width: 40px;
+  --gantt-font-size-md: 11px;
+  --gantt-font-size-sm: 10px;
+  --gantt-spacing-xs: 1px;
+  --gantt-spacing-sm: 2px;
+  --gantt-spacing-md: 4px;
+}
+
+/* 动画禁用模式（性能优化） */
+.gantt-theme-dhtmlx.no-animations * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* 打印样式优化 */
+@media print {
+  .gantt-theme-dhtmlx .gantt-controls {
+    display: none;
+  }
+
+  .gantt-theme-dhtmlx .gantt-main {
+    height: auto;
+  }
+
+  .gantt-theme-dhtmlx {
+    --gantt-bg-primary: white;
+    --gantt-text-primary: black;
+  }
+}
+
+/* ===== Jira风格额外优化 ===== */
+
+/* 表格行的zebra条纹效果 */
+.gantt-theme-dhtmlx .gantt-table-row:nth-child(even) {
+  background-color: rgba(248, 249, 250, 0.5);
+}
+
+.gantt-theme-dhtmlx .gantt-table-row:nth-child(even):hover {
+  background-color: var(--gantt-bg-hover);
+}
+
+/* 头部单元格增强 */
+.gantt-theme-dhtmlx .gantt-table-header {
+  box-shadow: 0 1px 2px rgba(9, 30, 66, 0.08);
+  position: relative;
+  z-index: 2;
+}
+
+/* 时间轴头部增强 */
+.gantt-theme-dhtmlx .gantt-timeline-header {
+  box-shadow: 0 1px 2px rgba(9, 30, 66, 0.08);
+  position: relative;
+  z-index: 2;
+}
+
+/* 任务条文本优化 */
+.gantt-theme-dhtmlx .gantt-task-bar .task-text {
+  font-weight: 500;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+/* 拖拽状态优化 */
+.gantt-theme-dhtmlx .gantt-task-bar.dragging {
+  opacity: 0.8;
+  transform: translateY(-50%) scale(1.02);
+  box-shadow: var(--gantt-shadow-lg);
+  z-index: 10;
+}
+
+/* 选中状态优化 */
+.gantt-theme-dhtmlx .gantt-task-bar.selected {
+  box-shadow: 0 0 0 2px var(--gantt-color-primary);
+  z-index: 5;
+}
+
+/* 焦点状态优化 */
+.gantt-theme-dhtmlx .gantt-table-row:focus,
+.gantt-theme-dhtmlx .gantt-task-bar:focus {
+  outline: 2px solid var(--gantt-color-primary);
+  outline-offset: 2px;
+}
+
+/* 工具提示样式 */
+.gantt-theme-dhtmlx .gantt-tooltip {
+  background: var(--gantt-bg-primary);
+  border: 1px solid var(--gantt-border-color);
+  border-radius: 6px;
+  padding: var(--gantt-spacing-md);
+  box-shadow: var(--gantt-shadow-lg);
+  font-size: var(--gantt-font-size-sm);
+  max-width: 300px;
+  z-index: var(--gantt-z-tooltip);
+}
+
+/* 加载状态优化 */
+.gantt-theme-dhtmlx .loading-overlay {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(2px);
+  border-radius: 6px;
+}
+
+/* 高密度模式下的响应式优化 */
+@media (max-width: 1200px) {
+  .gantt-theme-dhtmlx {
+    --gantt-spacing-md: 10px;
+    --gantt-btn-padding: 0 12px;
+  }
+}

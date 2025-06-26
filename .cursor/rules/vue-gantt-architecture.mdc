@@ -1,0 +1,41 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Vue Gantt Chart Project Architecture
+
+## Main Components Structure
+
+### Core Gantt Components
+- [src/components/GanttChart.vue](mdc:src/components/GanttChart.vue) - 主容器组件，管理甘特图的整体布局和配置
+- [src/components/GanttBars.vue](mdc:src/components/GanttBars.vue) - 任务条组件，处理拖拽、调整大小、连接线等交互
+- [src/components/GanttTimeline.vue](mdc:src/components/GanttTimeline.vue) - 时间轴组件
+- [src/components/CustomGanttTable.vue](mdc:src/components/CustomGanttTable.vue) - 左侧任务表格
+
+### Supporting Components
+- [src/components/GanttOverviewTimeline.vue](mdc:src/components/GanttOverviewTimeline.vue) - 时间轴概览
+- [src/components/SettingsDialog.vue](mdc:src/components/SettingsDialog.vue) - 设置对话框
+- [src/components/PerformanceMonitor.vue](mdc:src/components/PerformanceMonitor.vue) - 性能监控
+
+## Configuration & State Management
+- [src/store/index.js](mdc:src/store/index.js) - Vuex store 管理甘特图数据
+- [src/config/performance.js](mdc:src/config/performance.js) - 性能配置参数
+- [src/config/features.js](mdc:src/config/features.js) - 功能特性配置
+
+## Key Design Patterns
+
+### 事件通信
+- 父子组件使用 `$emit` 进行通信
+- 复杂状态通过 Vuex store 管理
+- 拖拽事件: `@bar-drag`, `@bar-resize`
+
+### 性能考虑
+- 避免在模板中直接调用函数
+- 使用计算属性缓存复杂计算
+- 事件节流处理鼠标移动
+
+### 代码规范
+- 所有注释使用中文
+- 代码中禁止使用中文字符串（除非明确要求）
+- 函数命名使用 camelCase

@@ -1,0 +1,40 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Vue Gantt Chart Performance Optimization Guide
+
+## Core Principle: Simplicity Over Complexity
+**避免过度优化** - Complex optimizations often create more performance problems than they solve.
+
+## Key Components
+- [src/components/GanttBars.vue](mdc:src/components/GanttBars.vue) - Main drag logic for gantt bars
+- [src/components/GanttChart.vue](mdc:src/components/GanttChart.vue) - Container component
+- [src/config/performance.js](mdc:src/config/performance.js) - Performance configuration
+
+## Drag Performance Best Practices
+
+### ✅ DO: Simple and Effective
+```javascript
+// 简单的鼠标位置节流 - 跳过重复位置
+if (this.dragState.lastMouseX === event.clientX) {
+  return;
+}
+this.dragState.lastMouseX = event.clientX;
+```
+
+### ❌ DON'T: Over-Engineering
+- 避免双重 RAF 节流 (requestAnimationFrame within requestAnimationFrame)
+- 避免复杂的缓存机制用于简单计算
+- 避免在拖拽过程中进行性能监控 (performance.now() 调用)
+- 避免批量DOM更新延迟用户反馈
+
+## Configuration
+- 拖拽节流时间: 4ms (高响应) vs 16ms (可能感觉卡顿)
+- 直接发送更新事件，避免缓存延迟
+
+## Debugging Performance Issues
+1. 先检查是否过度优化
+2. 移除复杂逻辑，使用最简实现
+3. 添加简单节流，不要复杂算法

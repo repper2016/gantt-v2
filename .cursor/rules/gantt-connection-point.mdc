@@ -1,0 +1,24 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Gantt 连接点结构与样式规范
+
+甘特图任务节点的连线点（connection point）相关结构和样式如下：
+
+- 主要结构位于 [src/components/GanttBars.vue](mdc:src/components/GanttBars.vue) 文件中。
+- 连线点 DOM 结构：
+  ```html
+  <div class="gantt-connection-points">
+    <div class="gantt-connection-point gantt-connection-point-left"></div>
+    <div class="gantt-connection-point gantt-connection-point-right"></div>
+  </div>
+  ```
+- 推荐将连线点放置在节点外部，避免与节点本身的拖拽、点击等交互冲突。
+- 相关样式定义在同文件 `<style>` 区域：
+  - `.gantt-connection-point` 绝对定位，宽高 8px，圆形，z-index: 12。
+  - `.gantt-connection-point-left` 建议 `left: -16px;`，`.gantt-connection-point-right` 建议 `right: -16px;`，确保在节点外部。
+  - 悬停时放大、变色，提升可用性。
+- 交互事件（如拖拽连线）需绑定在 `.gantt-connection-point` 上，避免与节点本体的拖拽冲突。
+- 相关样式和结构变更需同步更新本规则。

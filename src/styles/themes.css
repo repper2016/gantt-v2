@@ -1,0 +1,280 @@
+/* =========================================================
+   Vue Gantt Project - 主题系统 v2.0
+   参考 DHTMLX Gantt 9.0 设计理念
+   ========================================================= */
+
+/* ===== 主题基础架构 ===== */
+:root {
+  /* 基础颜色调色板 */
+  --gantt-color-primary: #3b82f6;
+  --gantt-color-primary-dark: #2563eb;
+  --gantt-color-primary-light: #60a5fa;
+
+  --gantt-color-secondary: #6b7280;
+  --gantt-color-secondary-dark: #4b5563;
+  --gantt-color-secondary-light: #9ca3af;
+
+  --gantt-color-success: #10b981;
+  --gantt-color-warning: #f59e0b;
+  --gantt-color-error: #ef4444;
+  --gantt-color-info: #06b6d4;
+
+  /* 中性色系 */
+  --gantt-color-white: #ffffff;
+  --gantt-color-black: #000000;
+  --gantt-color-gray-50: #f9fafb;
+  --gantt-color-gray-100: #f3f4f6;
+  --gantt-color-gray-200: #e5e7eb;
+  --gantt-color-gray-300: #d1d5db;
+  --gantt-color-gray-400: #9ca3af;
+  --gantt-color-gray-500: #6b7280;
+  --gantt-color-gray-600: #4b5563;
+  --gantt-color-gray-700: #374151;
+  --gantt-color-gray-800: #1f2937;
+  --gantt-color-gray-900: #111827;
+
+  /* 文字颜色 */
+  --gantt-text-primary: var(--gantt-color-gray-900);
+  --gantt-text-secondary: var(--gantt-color-gray-600);
+  --gantt-text-muted: var(--gantt-color-gray-500);
+  --gantt-text-inverse: var(--gantt-color-white);
+
+  /* 背景色 */
+  --gantt-bg-primary: var(--gantt-color-white);
+  --gantt-bg-secondary: var(--gantt-color-gray-50);
+  --gantt-bg-tertiary: var(--gantt-color-gray-100);
+  --gantt-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* 边框色 */
+  --gantt-border-color: var(--gantt-color-gray-200);
+  --gantt-border-color-light: var(--gantt-color-gray-100);
+  --gantt-border-color-dark: var(--gantt-color-gray-300);
+
+  /* 阴影 */
+  --gantt-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --gantt-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --gantt-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* 尺寸变量 */
+  --gantt-border-radius-sm: 4px;
+  --gantt-border-radius-md: 6px;
+  --gantt-border-radius-lg: 8px;
+
+  --gantt-spacing-xs: 4px;
+  --gantt-spacing-sm: 8px;
+  --gantt-spacing-md: 16px;
+  --gantt-spacing-lg: 24px;
+  --gantt-spacing-xl: 32px;
+
+  /* 字体 - 压缩版本 */
+  --gantt-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --gantt-font-size-xs: 10px; /* 压缩字体 */
+  --gantt-font-size-sm: 11px; /* 压缩字体 */
+  --gantt-font-size-md: 12px; /* 压缩字体 */
+  --gantt-font-size-lg: 14px; /* 压缩字体 */
+  --gantt-font-size-xl: 16px; /* 压缩字体 */
+
+  --gantt-line-height-compact: 1.4;
+  --gantt-line-height-normal: 1.5;
+  --gantt-line-height-relaxed: 1.6;
+
+  /* 动画 */
+  --gantt-transition-fast: 150ms ease-in-out;
+  --gantt-transition-normal: 200ms ease-in-out;
+  --gantt-transition-slow: 300ms ease-in-out;
+
+  /* 甘特图特有变量 - 压缩行高提升显示密度 */
+  --gantt-task-height: 20px;
+  --gantt-row-height: 28px;
+  --gantt-header-height: 36px;
+  --gantt-timeline-cell-width: 80px;
+
+  /* 任务条样式 */
+  --gantt-task-bg: var(--gantt-color-primary);
+  --gantt-task-border: var(--gantt-color-primary-dark);
+  --gantt-task-text: var(--gantt-color-white);
+  --gantt-task-progress-bg: rgba(255, 255, 255, 0.3);
+
+  --gantt-task-milestone-bg: var(--gantt-color-warning);
+  --gantt-task-parent-bg: var(--gantt-color-secondary);
+
+  /* 网格样式 */
+  --gantt-grid-bg: var(--gantt-bg-primary);
+  --gantt-grid-border: var(--gantt-border-color);
+  --gantt-grid-header-bg: var(--gantt-bg-secondary);
+  --gantt-grid-row-hover-bg: var(--gantt-color-gray-50);
+  --gantt-grid-row-selected-bg: rgba(59, 130, 246, 0.1);
+
+  /* 时间轴样式 */
+  --gantt-timeline-bg: var(--gantt-bg-primary);
+  --gantt-timeline-border: var(--gantt-border-color);
+  --gantt-timeline-header-bg: var(--gantt-bg-secondary);
+  --gantt-timeline-weekend-bg: rgba(0, 0, 0, 0.02);
+  --gantt-timeline-today-bg: rgba(59, 130, 246, 0.1);
+
+  /* 依赖关系样式 */
+  --gantt-link-color: var(--gantt-color-gray-400);
+  --gantt-link-hover-color: var(--gantt-color-primary);
+  --gantt-link-width: 2px;
+
+  /* 控制面板样式 */
+  --gantt-controls-bg: var(--gantt-bg-secondary);
+  --gantt-controls-border: var(--gantt-border-color);
+  --gantt-controls-height: 56px;
+
+  /* 按钮样式 */
+  --gantt-btn-primary-bg: var(--gantt-color-primary);
+  --gantt-btn-primary-hover-bg: var(--gantt-color-primary-dark);
+  --gantt-btn-primary-text: var(--gantt-color-white);
+
+  --gantt-btn-secondary-bg: var(--gantt-color-white);
+  --gantt-btn-secondary-hover-bg: var(--gantt-color-gray-50);
+  --gantt-btn-secondary-text: var(--gantt-text-primary);
+  --gantt-btn-secondary-border: var(--gantt-border-color);
+
+  /* 状态色 */
+  --gantt-status-not-started: var(--gantt-color-gray-400);
+  --gantt-status-in-progress: var(--gantt-color-primary);
+  --gantt-status-completed: var(--gantt-color-success);
+  --gantt-status-overdue: var(--gantt-color-error);
+
+  /* Z-index 层次 */
+  --gantt-z-tooltip: 1000;
+  --gantt-z-dropdown: 900;
+  --gantt-z-modal: 800;
+  --gantt-z-overlay: 700;
+  --gantt-z-header: 100;
+}
+
+/* ===== 简洁主题（默认，参考 DHTMLX） ===== */
+.gantt-theme-minimal {
+  /* 更紧凑的尺寸 */
+  --gantt-task-height: 24px;
+  --gantt-row-height: 32px;
+  --gantt-header-height: 40px;
+  --gantt-timeline-cell-width: 60px;
+
+  /* 更细的边框 */
+  --gantt-border-color: var(--gantt-color-gray-100);
+  --gantt-grid-border: var(--gantt-color-gray-100);
+  --gantt-timeline-border: var(--gantt-color-gray-100);
+
+  /* 更淡的背景 */
+  --gantt-grid-header-bg: #fafafa;
+  --gantt-timeline-header-bg: #fafafa;
+  --gantt-grid-row-hover-bg: #f8f9fa;
+
+  /* 更小的字体 */
+  --gantt-font-size-md: 13px;
+  --gantt-font-size-sm: 12px;
+  --gantt-line-height-compact: 1.3;
+
+  /* 减少内边距 */
+  --gantt-spacing-sm: 6px;
+  --gantt-spacing-md: 12px;
+
+  /* 任务条样式优化 */
+  --gantt-task-bg: #4f46e5;
+  --gantt-task-border: #4338ca;
+  --gantt-task-milestone-bg: #f59e0b;
+  --gantt-task-parent-bg: #6b7280;
+}
+
+/* ===== 暗色主题 ===== */
+.gantt-theme-dark {
+  /* 暗色调色板 */
+  --gantt-color-primary: #60a5fa;
+  --gantt-color-primary-dark: #3b82f6;
+  --gantt-color-primary-light: #93c5fd;
+
+  --gantt-text-primary: var(--gantt-color-gray-100);
+  --gantt-text-secondary: var(--gantt-color-gray-300);
+  --gantt-text-muted: var(--gantt-color-gray-400);
+
+  --gantt-bg-primary: var(--gantt-color-gray-900);
+  --gantt-bg-secondary: var(--gantt-color-gray-800);
+  --gantt-bg-tertiary: var(--gantt-color-gray-700);
+
+  --gantt-border-color: var(--gantt-color-gray-700);
+  --gantt-border-color-light: var(--gantt-color-gray-800);
+  --gantt-border-color-dark: var(--gantt-color-gray-600);
+
+  --gantt-grid-bg: var(--gantt-color-gray-900);
+  --gantt-grid-header-bg: var(--gantt-color-gray-800);
+  --gantt-grid-row-hover-bg: var(--gantt-color-gray-800);
+  --gantt-grid-row-selected-bg: rgba(96, 165, 250, 0.2);
+
+  --gantt-timeline-bg: var(--gantt-color-gray-900);
+  --gantt-timeline-header-bg: var(--gantt-color-gray-800);
+  --gantt-timeline-weekend-bg: rgba(255, 255, 255, 0.05);
+  --gantt-timeline-today-bg: rgba(96, 165, 250, 0.2);
+
+  --gantt-task-bg: var(--gantt-color-primary);
+  --gantt-task-border: var(--gantt-color-primary-dark);
+  --gantt-task-text: var(--gantt-color-gray-900);
+}
+
+/* ===== 经典主题（保留原有样式） ===== */
+.gantt-theme-classic {
+  /* 保持现有的样式变量，确保向后兼容 */
+  --gantt-task-height: 32px;
+  --gantt-row-height: 40px;
+  --gantt-header-height: 48px;
+
+  --gantt-color-primary: #2196F3;
+  --gantt-color-primary-dark: #1976D2;
+  --gantt-task-bg: var(--gantt-color-primary);
+  --gantt-task-border: var(--gantt-color-primary-dark);
+
+  /* 保持较为宽松的间距 */
+  --gantt-spacing-md: 16px;
+  --gantt-spacing-lg: 24px;
+}
+
+/* ===== 主题切换动画 ===== */
+* {
+  transition: background-color var(--gantt-transition-fast),
+              border-color var(--gantt-transition-fast),
+              color var(--gantt-transition-fast);
+}
+
+/* ===== 工具类 ===== */
+.gantt-density-compact {
+  --gantt-task-height: 20px;
+  --gantt-row-height: 28px;
+  --gantt-header-height: 36px;
+  --gantt-font-size-md: 12px;
+  --gantt-spacing-sm: 4px;
+  --gantt-spacing-md: 8px;
+}
+
+.gantt-density-comfortable {
+  --gantt-task-height: 36px;
+  --gantt-row-height: 48px;
+  --gantt-header-height: 56px;
+  --gantt-font-size-md: 15px;
+  --gantt-spacing-md: 20px;
+  --gantt-spacing-lg: 28px;
+}
+
+/* ===== 响应式优化 ===== */
+@media (max-width: 768px) {
+  :root {
+    --gantt-timeline-cell-width: 40px;
+    --gantt-task-height: 28px;
+    --gantt-row-height: 36px;
+    --gantt-font-size-md: 13px;
+    --gantt-spacing-md: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --gantt-timeline-cell-width: 30px;
+    --gantt-task-height: 24px;
+    --gantt-row-height: 32px;
+    --gantt-font-size-md: 12px;
+    --gantt-spacing-sm: 4px;
+    --gantt-spacing-md: 8px;
+  }
+}
