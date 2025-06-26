@@ -1,0 +1,2093 @@
+
+.gantt-bars {
+  position: relative;
+  height: 100%;
+  /* 使用传入的chart-height动态设置最小高度 */
+  min-height: 200px;
+  /* 确保容器高度精确匹配内容，避免额外空白 */
+  max-height: 100%;
+  /* 修改overflow设置，允许水平溢出但垂直方向可滚动 */
+  overflow-x: visible;
+  /* overflow-y: clip; */
+  /* 确保内容不会产生额外的空白区域 */
+  box-sizing: border-box;
+  /* 不包含布局，允许子元素溢出 */
+  contain: none;
+}
+
+/* 高亮行背景样式 */
+.highlighted-row-background {
+  position: absolute;
+  left: 0;
+  background:linear-gradient(90deg, rgba(74, 144, 226, 0.12) 0%, rgba(74, 144, 226, 0.08) 100%);
+
+
+  z-index: 1;
+
+}
+
+.dependency-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: auto;
+  z-index: 2;
+}
+
+.dependency-group {
+  cursor: pointer;
+}
+
+.dependency-hit-area {
+  cursor: pointer;
+  stroke-width: 20;
+  opacity: 0;
+}
+
+.dependency-hit-area:hover {
+  opacity: 0.1;
+  stroke: #3498db;
+}
+
+.dependency-line {
+  transition: stroke 0.2s ease, stroke-width 0.2s ease;
+  cursor: pointer;
+}
+
+.dependency-line:hover {
+  stroke-width: 3 !important;
+  filter: brightness(1.2);
+}
+
+.dependency-line.selected {
+  stroke: #ff4757 !important;
+  stroke-width: 4 !important;
+}
+
+.label-group {
+  cursor: pointer;
+}
+
+.label-background {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.label-background:hover {
+  fill: #f0f8ff;
+  stroke: #3498db;
+}
+
+.dependency-label {
+  font-size: 12px;
+  fill: #333;
+  text-anchor: middle;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+  transition: fill 0.2s ease;
+}
+
+.dependency-label:hover {
+  fill: #3498db;
+  font-weight: 600;
+}
+
+.dependency-label.selected {
+  fill: #ff4757;
+  font-weight: 600;
+}
+
+.control-buttons {
+  cursor: pointer;
+}
+
+.color-button-group,
+.delete-button-group {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.color-button-group:hover,
+.delete-button-group:hover {
+  opacity: 0.8;
+}
+
+.color-button,
+.delete-button {
+  cursor: pointer;
+  transition: fill 0.2s ease;
+}
+
+.color-inner-circle {
+  transition: opacity 0.2s ease;
+}
+
+.color-button-group:hover .color-inner-circle {
+  opacity: 0.6;
+}
+
+.delete-button-group:hover .delete-button {
+  fill: #c0392b !important;
+}
+
+.connection-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.gantt-bar-container {
+  position: absolute;
+  height: 28px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+}
+
+.plan-date-range {
+  position: absolute;
+  height: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(45deg,
+    rgba(24, 144, 255, 0.2) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(24, 144, 255, 0.2) 50%,
+    rgba(24, 144, 255, 0.2) 75%,
+    transparent 75%
+  );
+  background-size: 8px 8px;
+  border: 1px dashed rgba(24, 144, 255, 0.5);
+  border-radius: 4px;
+  z-index: 5; /* 确保在实际任务条下面 */
+  pointer-events: none;
+}
+
+.gantt-bar {
+  height: 16px;
+  width: 100%;
+  border-radius: 2px;
+  position: relative;
+  cursor: move;
+  transition: all 0.15s ease;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 10; /* 确保在plan-date-range上面 */
+  font-size: 11px; /* 压缩文字大小 */
+  line-height: 1.2; /* 紧凑行高 */
+  will-change: transform; /* 启用硬件加速 */
+  transform: translateZ(0); /* 强制硬件加速 */
+}
+
+.gantt-bar:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.gantt-bar.dragging {
+  z-index: 100;
+  opacity: 0.9;
+  will-change: transform;
+  transition: none; /* 拖拽时禁用过渡 */
+  transform: translateZ(0); /* 保持硬件加速 */
+  backface-visibility: hidden; /* 避免拖拽闪烁 */
+  pointer-events: none; /* 拖拽时禁用指针事件，避免冲突 */
+}
+
+.gantt-bar.connecting {
+  border-color: #4a90e2;
+  background-color: rgba(74, 144, 226, 0.1);
+}
+
+.gantt-bar.selected {
+  border-color: #4a90e2;
+  background-color: rgba(74, 144, 226, 0.1);
+}
+
+/* 父级节点样式 - 参考Bryntum甘特图 */
+.gantt-bar.parent-task {
+  position: relative;
+  border-radius: 0;
+  font-size: 11px; /* 压缩文字大小 */
+  box-shadow: none;
+  margin-top: 0;
+  z-index: 20;
+  border: none;
+  display: flex;
+  align-items: center;
+  overflow: visible !important; /* 允许三角形超出 */
+  height: 14px; /* 压缩父节点高度 */
+  transform-style: preserve-3d; /* 确保子元素跟随父元素一起变换 */
+  will-change: transform; /* 优化变换性能 */
+}
+
+
+
+
+/* 父节点拖拽时的样式 */
+.gantt-bar.parent-dragging {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  z-index: 20 !important;
+  will-change: transform; /* 提示浏览器该元素将进行变换，优化渲染 */
+  transition: none; /* 拖拽时禁用过渡 */
+  backface-visibility: hidden; /* 避免拖拽闪烁 */
+}
+
+/* 父节点拖拽时的三角形样式 */
+.gantt-bar.parent-dragging::before,
+.gantt-bar.parent-dragging::after {
+  will-change: transform; /* 提示浏览器该元素将进行变换，优化渲染 */
+}
+
+/* 父节点进度条样式 */
+.gantt-bar.parent-task .gantt-bar-progress {
+  background: rgba(255, 255, 255, 0.3) !important;
+  height: 14px; /* 适配新的父节点高度 */
+  top: 0;
+  border-radius: 0;
+  transition: width 0.3s ease;
+}
+
+/* 父节点指示器 */
+.gantt-bar.parent-task .parent-indicator {
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px; /* 压缩指示器尺寸 */
+  height: 10px; /* 压缩指示器尺寸 */
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 21;
+  font-size: 8px; /* 压缩字体 */
+  font-weight: bold;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.gantt-bar.parent-task .parent-indicator:hover {
+  transform: translateY(-50%) scale(1.15);
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 默认显示减号（展开状态） */
+.gantt-bar.parent-task .parent-indicator::before {
+  content: '−';
+  color: #6b7280; /* 修改为深灰色 */
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px; /* 压缩字体 */
+  line-height: 0.8;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+/* 折叠状态显示加号 */
+.gantt-bar.parent-task .parent-indicator[data-collapsed="true"]::before {
+  content: '+';
+  font-size: 9px; /* 压缩字体 */
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+
+
+
+/* 父节点文本样式 */
+.gantt-bar.parent-task .gantt-bar-text {
+  padding-left: 22px; /* 为展开/折叠图标留出空间 */
+  font-weight: 600;
+  font-size: 12px;
+  color: #ffffff;
+  text-shadow: none;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 父节点选中样式 */
+.gantt-bar.parent-task.selected {
+  background: #6b7280 !important; /* 深灰色表示选中 */
+  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.4) !important;
+}
+
+.gantt-bar.parent-task.selected::before {
+  border-right-color: #6b7280;
+}
+
+.gantt-bar.parent-task.selected::after {
+  border-left-color: #6b7280;
+}
+
+.gantt-bar-progress {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.2s ease;
+  background: rgba(0,0,0,0.3) !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* 拖拽时禁用过渡效果，确保流畅 */
+.gantt-bar.progress-dragging .gantt-bar-progress {
+  transition: none;
+}
+
+/* 进度拖拽时的特殊样式 */
+.gantt-bar.progress-dragging .gantt-progress-handle {
+  border-bottom-color: #2c5f8a;
+  border-left-width: 10px;
+  border-right-width: 10px;
+  border-bottom-width: 14px;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+}
+
+/* 进度拖拽时添加动画效果 */
+.gantt-bar.progress-dragging .gantt-bar-progress {
+  background: rgba(0, 0, 0, 0.4) !important;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.gantt-bar-text {
+  position: absolute;
+  top: 0;
+  left: 8px;
+  right: 8px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  color: white;
+  font-size: 10px;
+  font-weight: 500;
+  overflow: hidden;
+  pointer-events: none; /* 避免干扰拖拽 */
+}
+
+.task-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+/* 百分比显示 - 直接放在进度条上 */
+.gantt-bar-progress-text {
+  position: absolute;
+  top: 50%;
+  right: 4px; /* 从进度条右端向左偏移4px */
+  transform: translateY(-50%);
+  font-weight: 600;
+  font-size: 9px;
+  color: white;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 24;
+  opacity: 1;
+  transition: all 0.15s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); /* 增加文字阴影提升可读性 */
+}
+
+.resize-handle {
+  position: absolute;
+  width: 6px;
+  height: 24px;
+  cursor: col-resize;
+  background: #4a90e2;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  z-index: 15;
+  border-radius: 2px;
+}
+
+.resize-handle.left {
+  left: -8px; /* 扁平化设计，位置更靠近节点 */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.resize-handle.right {
+  right: -8px; /* 扁平化设计，位置更靠近节点 */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.gantt-bar:hover .resize-handle {
+  opacity: 1;
+}
+
+
+
+.resize-handle:hover {
+  background: #357abd;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.task-delete-btn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  background: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  line-height: 1;
+  z-index: 20;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.task-delete-btn:hover {
+  background: #c0392b;
+  transform: scale(1.1);
+}
+
+.gantt-bar:hover .task-delete-btn {
+  display: flex;
+}
+
+.milestone {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  transition: all 0.3s ease;
+}
+
+.milestone-diamond {
+  width: 16px;
+  height: 16px;
+  background: #f39c12;
+  transform: rotate(45deg);
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.milestone-icon {
+  position: absolute;
+  font-size: 8px;
+  transform: rotate(-45deg);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Milestone状态样式 */
+.milestone.milestone-completed .milestone-diamond {
+  background: #52c41a;
+  border-color: #b7eb8f;
+}
+
+.milestone.milestone-overdue .milestone-diamond {
+  background: #ff4d4f;
+  border-color: #ff7875;
+  animation: milestone-warning 2s infinite ease-in-out;
+}
+
+.milestone.milestone-editable:hover {
+  transform: translateY(-50%) scale(1.2);
+  cursor: pointer;
+}
+
+.milestone.milestone-editable:hover .milestone-diamond {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Milestone连接点样式 */
+.milestone-connection-points {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+}
+
+.milestone-connection-point {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #3498db;
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: crosshair;
+  opacity: 0;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.milestone-connection-left {
+  top: 50%;
+  left: -16px; /* 与普通连接点保持一致 */
+  transform: translateY(-50%);
+}
+
+.milestone-connection-right {
+  top: 50%;
+  right: -16px; /* 与普通连接点保持一致 */
+  transform: translateY(-50%);
+}
+
+.milestone:hover .milestone-connection-point {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.milestone-connection-point:hover {
+  background: #1890ff;
+  transform: translateY(-50%) scale(1.3);
+  box-shadow: 0 2px 6px rgba(24, 144, 255, 0.4);
+}
+
+.connection-dot {
+  width: 4px;
+  height: 4px;
+  background: white;
+  border-radius: 50%;
+  margin: 2px;
+}
+
+@keyframes milestone-warning {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(255, 77, 79, 0.6);
+  }
+}
+
+.color-picker {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  padding: 16px;
+  z-index: 1000;
+  min-width: 220px;
+  user-select: none;
+}
+
+.color-picker-header {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #333;
+  text-align: center;
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.color-option {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.color-option:hover {
+  border-color: #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.color-option:active {
+  transform: scale(0.95);
+}
+
+.close-picker {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #666;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-picker:hover {
+  color: #333;
+}
+
+.connection-hint {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 1000;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Element UI 自定义样式优化 */
+.gantt-dialog .el-dialog {
+  transform: none !important;
+  zoom: 1 !important;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.gantt-dialog .el-dialog__header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 25px;
+  border-bottom: none;
+}
+
+.gantt-dialog .el-dialog__title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.gantt-dialog .el-dialog__close {
+  color: white;
+  font-size: 20px;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.gantt-dialog .el-dialog__close:hover {
+  opacity: 1;
+}
+
+.gantt-dialog .el-dialog__body {
+  padding: 25px;
+  background: #fafbfc;
+}
+
+.gantt-dialog .el-form {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.gantt-dialog .el-form-item {
+  margin-bottom: 22px;
+}
+
+.gantt-dialog .el-slider {
+  margin-right: 15px;
+}
+
+.gantt-dialog .el-slider__runway {
+  background: #e2e8f0;
+  border-radius: 6px;
+  height: 8px;
+}
+
+.gantt-dialog .el-slider__bar {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 6px;
+}
+
+.gantt-dialog .el-slider__button {
+  border: 3px solid white;
+  background: #667eea;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  width: 20px;
+  height: 20px;
+}
+
+.gantt-dialog .el-slider__input {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.gantt-dialog .el-color-picker {
+  vertical-align: top;
+}
+
+.gantt-dialog .el-color-picker__trigger {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  width: 50px;
+  height: 28px; /* 修复颜色选择器高度 */
+  transition: all 0.2s ease;
+}
+
+.gantt-dialog .el-color-picker__trigger:hover {
+  border-color: #667eea;
+}
+
+.gantt-dialog .el-select .el-input__inner {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.gantt-dialog .el-checkbox__inner {
+  border-color: #e2e8f0;
+  border-radius: 4px;
+  background: #f8fafc;
+}
+
+.gantt-dialog .el-checkbox__input.is-checked .el-checkbox__inner {
+  background: #667eea;
+  border-color: #667eea;
+}
+
+.gantt-dialog .el-checkbox__label {
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.gantt-dialog .el-dialog__footer {
+  padding: 20px 25px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.gantt-dialog .el-button {
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.gantt-dialog .el-button--primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.gantt-dialog .el-button--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.gantt-dialog .el-button--danger {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.gantt-dialog .el-button--danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
+}
+
+.gantt-dialog .el-button--default {
+  background: white;
+  border: 2px solid #e2e8f0;
+  color: #4a5568;
+}
+
+.gantt-dialog .el-button--default:hover {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Tooltip 样式 */
+.gantt-tooltip {
+  position: absolute;
+  background: white;
+  border: 1px solid #e1e8ed;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  z-index: 1000;
+  font-size: 12px;
+  line-height: 1.4;
+  min-width: 280px;
+  max-width: 480px;
+  user-select: none;
+  pointer-events: auto;
+}
+
+.tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 8px;
+}
+
+.tooltip-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tooltip-progress {
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 35px;
+  text-align: center;
+}
+
+.tooltip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tooltip-label {
+  font-weight: 500;
+  color: #666;
+  min-width: 80px;
+}
+
+.tooltip-value {
+  font-weight: 400;
+  color: #333;
+  text-align: right;
+}
+
+.tooltip-value.plan-date-tooltip {
+  color: #1890ff;
+  font-style: italic;
+}
+
+.tooltip-value.status {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.tooltip-value.status.status-completed {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.tooltip-value.status.status-progress {
+  background: #fff7e6;
+  color: #fa8c16;
+  border: 1px solid #ffd591;
+}
+
+.tooltip-value.status.status-not-started {
+  background: #f5f5f5;
+  color: #8c8c8c;
+  border: 1px solid #d9d9d9;
+}
+
+.tooltip-value.milestone {
+  color: #f39c12;
+  font-weight: 600;
+}
+
+
+
+.gantt-bar.highlighted {
+  box-shadow: 0 0 10px rgba(255, 193, 7, 0.8);
+  transform: scale(1.02);
+  z-index: 30;
+}
+
+.gantt-bar.connection-highlight {
+  box-shadow: 0 0 8px rgba(24, 144, 255, 0.6);
+  border: 2px solid #1890ff;
+  z-index: 25;
+  transform: scale(1.01);
+  transition: all 0.3s ease;
+}
+
+.gantt-bar.connection-source {
+  box-shadow: 0 0 12px rgba(255, 77, 79, 0.8);
+  border: 3px solid #ff4d4f;
+  z-index: 35;
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+}
+
+.plan-date-tooltip {
+  color: #1890ff;
+  font-style: italic;
+}
+
+.plan-date-tooltip::before {
+  content: '📅 ';
+  font-size: 10px;
+}
+
+/* 血缘关系高亮样式 */
+.gantt-bar.lineage-highlighted {
+  box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+  border: 2px solid #3498db;
+}
+
+.gantt-bar.lineage-dimmed {
+  opacity: 0.3;
+  filter: grayscale(50%);
+}
+
+.gantt-bar.lineage-source {
+  box-shadow: 0 0 12px rgba(231, 76, 60, 0.8);
+  border: none;
+  animation: pulse-source 2s infinite;
+}
+
+.gantt-bar.lineage-upstream {
+  box-shadow: 0 0 8px rgba(46, 204, 113, 0.6);
+  border: 2px solid #2ecc71;
+}
+
+.gantt-bar.lineage-downstream {
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.6);
+  border: 2px solid #9b59b6;
+}
+
+@keyframes pulse-source {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 12px rgba(231, 76, 60, 0.8);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 16px rgba(231, 76, 60, 1);
+  }
+}
+
+/* 关键路径样式 */
+.gantt-bar.critical-path {
+  box-shadow: 0 0 0 2px rgba(255, 71, 87, 0.7) !important;
+  z-index: 15;
+  position: relative;
+}
+
+.gantt-bar.critical-path::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 2px dashed rgba(255, 71, 87, 0.5);
+  border-radius: 4px;
+  pointer-events: none;
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0% { border-color: rgba(255, 71, 87, 0.5); }
+  50% { border-color: rgba(255, 71, 87, 0.8); }
+  100% { border-color: rgba(255, 71, 87, 0.5); }
+}
+
+/* 依赖连线高亮样式 */
+.dependency-line.highlighted {
+  animation: line-pulse 2s infinite;
+}
+
+.dependency-line.dimmed {
+  opacity: 0.2;
+  stroke-dasharray: 5,5;
+}
+
+@keyframes line-pulse {
+  0%, 100% {
+    stroke-width: 3;
+  }
+  50% {
+    stroke-width: 4;
+  }
+}
+
+.gantt-connection-points {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 11;
+}
+
+.gantt-connection-point {
+  position: absolute;
+  width: 10px; /* 扁平化设计，尺寸适中 */
+  height: 10px; /* 扁平化设计，尺寸适中 */
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #3498db;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 12;
+  pointer-events: auto;
+  cursor: crosshair;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.gantt-connection-point.gantt-connection-point-left {
+  left: -16px; /* 更贴近节点，提高易用性 */
+}
+
+.gantt-connection-point.gantt-connection-point-right {
+  right: -16px; /* 更贴近节点，提高易用性 */
+}
+
+.gantt-connection-point.active {
+  opacity: 1;
+}
+
+.gantt-connection-point.connecting {
+  background: #ff4757;
+  border-color: #ffffff;
+  z-index: 7;
+}
+
+.gantt-connection-dot {
+  display: none; /* 不再需要内部dot */
+}
+
+.gantt-connection-point:hover {
+  background: #3498db;
+  border-color: #ffffff;
+  transform: translateY(-50%) scale(1.2);
+}
+
+.gantt-connection-point.active {
+  opacity: 1;
+}
+
+.gantt-connection-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.gantt-connection-preview line {
+  stroke: #1890ff;
+  stroke-width: 2;
+  stroke-dasharray: 4,4;
+  opacity: 0.8;
+}
+
+.gantt-connection-preview circle {
+  fill: #1890ff;
+  opacity: 0.8;
+}
+
+/* dhtmlx风格的依赖连接线样式 */
+.gantt-dependency-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.gantt-dependency-group {
+  pointer-events: auto;
+}
+
+.gantt-link-container {
+  cursor: pointer;
+}
+
+.gantt-link-hit-area {
+  cursor: pointer;
+  opacity: 0;
+}
+
+.gantt-link-hit-area:hover {
+  opacity: 0.1;
+  stroke: #1890ff;
+}
+
+.gantt-dependency-line {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+}
+
+.gantt-dependency-line.selected {
+  filter: url(#connectionShadow) drop-shadow(0 0 3px rgba(255, 71, 87, 0.6));
+  opacity: 1;
+}
+
+.gantt-dependency-line.highlighted {
+  filter: url(#connectionShadow) drop-shadow(0 0 3px rgba(24, 144, 255, 0.6));
+  animation: link-highlight 2s infinite;
+  opacity: 1;
+}
+
+.gantt-dependency-line.dimmed {
+  opacity: 0.25;
+  stroke-dasharray: 3,3;
+  filter: none;
+}
+
+.gantt-dependency-line.gray-mode {
+  opacity: 0.7;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes link-highlight {
+  0%, 100% {
+    stroke-opacity: 1;
+  }
+  50% {
+    stroke-opacity: 0.6;
+  }
+}
+
+/* 连接线标签样式 */
+.gantt-link-label-group {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.gantt-link-label-bg {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gantt-link-label-bg:hover {
+  fill: rgba(248, 249, 250, 0.98);
+  stroke: rgba(24, 144, 255, 0.8);
+  stroke-width: 0.8;
+}
+
+.gantt-link-label-text {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.gantt-link-label-text.selected {
+  font-weight: 600;
+}
+
+.gantt-link-label-text:hover {
+  fill: #1890ff;
+}
+
+/* 控制按钮样式 */
+.gantt-link-controls {
+  pointer-events: auto;
+}
+
+.gantt-link-color-btn,
+.gantt-link-delete-btn {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gantt-link-color-btn:hover .gantt-color-button,
+.gantt-link-delete-btn:hover .gantt-delete-button {
+  transform: scale(1.1);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+}
+
+.gantt-color-button,
+.gantt-delete-button {
+  transition: all 0.2s ease;
+}
+
+/* 连接点在任务条悬停时显示 */
+.gantt-bar-container:hover .gantt-connection-point {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 连接线编辑对话框样式 - Element UI Dialog */
+/* 确保对话框和遮罩层的正确层级 */
+.gantt-link-edit-dialog {
+
+}
+
+.gantt-link-edit-dialog .el-dialog {
+  margin-top: 5vh !important;
+
+}
+
+
+.gantt-link-edit-content {
+  padding: 0;
+}
+
+.gantt-link-info {
+  margin-bottom: 20px;
+}
+
+.gantt-color-selector {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.gantt-color-preview {
+  width: 28px; /* 修复颜色预览尺寸 */
+  height: 28px; /* 修复颜色预览尺寸 */
+  border-radius: 6px;
+  border: 2px solid #e1e5e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.color-text {
+  font-size: 10px;
+  color: white;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.gantt-color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gantt-color-option {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.gantt-color-option:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.gantt-color-option.selected {
+  border-color: #409eff;
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.3);
+}
+
+/* 原有按钮样式已移除，现在使用 Element UI 按钮 */
+
+/* 进度拖拽手柄容器 - 默认隐藏，hover时显示 */
+.gantt-progress-handle-container {
+  position: absolute;
+  top: 100%;
+  right: -10px; /* 进一步缩小位置偏移 */
+  width: 20px; /* 进一步减小点击区域 */
+  height: 16px; /* 进一步减小点击区域高度 */
+  cursor: col-resize;
+  z-index: 25;
+  opacity: 0; /* 默认隐藏 */
+  transition: opacity 0.3s ease, transform 0.15s ease, background 0.15s ease;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  border-radius: 2px;
+  will-change: transform;
+  background: transparent; /* 移除背景 */
+  /* 更精确的点击区域，解决拖拽时显示过大的问题 */
+}
+
+/* 底部三角形进度拖拽手柄 - 更小更精致 */
+.gantt-progress-handle {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 6px solid #4a90e2;
+  transition: transform 0.1s ease, border-bottom-color 0.1s ease;
+  will-change: transform, border-bottom-color;
+  /* 进一步缩小三角形尺寸，解决拖拽时显示过大的问题 */
+}
+
+.gantt-bar:hover .gantt-progress-handle-container {
+  opacity: 1; /* 悬停甘特条时显示手柄 */
+}
+
+/* 百分比始终可见，移除悬停逻辑 */
+
+.gantt-progress-handle-container:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+  background: transparent; /* 移除背景 */
+}
+
+.gantt-progress-handle-container:hover .gantt-progress-handle {
+  border-bottom-color: #357abd;
+  /* 悬停时只改变颜色，不放大 */
+}
+
+/* 百分比始终可见，移除特殊悬停效果 */
+
+.gantt-progress-handle-container:active {
+  transform: translateY(0px);
+  background: transparent;
+}
+
+.gantt-progress-handle-container:active .gantt-progress-handle {
+  border-bottom-color: #2c5f8a;
+}
+
+/* ===== 任务名称标签样式 - JIRA风格 ===== */
+.gantt-task-name-label {
+  position: absolute;
+  font-size: 12px;
+  color: #5e6c84;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 400;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 4;
+  user-select: none;
+  /* 精确垂直居中对齐 */
+  line-height: 12px;
+  height: 12px;
+  /* 超长名称处理 */
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 暗色主题下的任务名称标签 */
+.dark-theme .gantt-task-name-label {
+  color: #9fadbc;
+}
+
+/* Element UI 对话框底部按钮区域样式 */
+.dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 父节点甘特条样式 - 绿色传统样式 */
+.gantt-bar.parent-task {
+  background: linear-gradient(to bottom, #4CAF50, #388E3C);
+  pointer-events: auto;
+  height: 14px;
+  border-radius: 0;
+  padding: 0;
+  overflow: visible;
+  display: block;
+  position: relative;
+  /* 绿色传统甘特图父节点样式 */
+}
+
+.gantt-bar.parent-task::before {
+  content: "";
+    position: absolute;
+    left: 3px;
+    transform: translateX(-50%) rotate(135deg);
+    bottom: -5px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #3d9641;
+
+}
+
+.gantt-bar.parent-task::after {
+   content: "";
+    position: absolute;
+    right: -15px;
+    transform: translateX(-50%) rotate(90deg);
+    bottom: -5px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #3d9641;
+  /* 右端绿色三角形 */
+}
+
+.gantt-bar.parent-task .gantt-bar-main {
+  height: 100%;
+  background: linear-gradient(to bottom, #4CAF50, #388E3C);
+  border-radius: 0;
+  margin: 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  /* 绿色主体区域 */
+}
+
+.gantt-bar.parent-task .gantt-bar-text {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  right: 8px;
+  transform: translateY(-50%);
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  /* 白色文字，居中显示 */
+}
+
+.gantt-bar.parent-task .gantt-bar-progress-text {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  font-size: 10px;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  /* 进度文字 */
+}
+
+/* 父节点进度条样式 */
+.gantt-bar.parent-task .gantt-bar-progress {
+  background: linear-gradient(135deg, #66BB6A, #43A047);
+  border-radius: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.gantt-bar.parent-task .gantt-bar-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
+  border-radius: 0;
+}
+
+
+
+/* 父节点拖拽时的特殊样式 */
+.gantt-bar.parent-dragging {
+  z-index: 150;
+}
+
+.gantt-bar.parent-dragging::before,
+.gantt-bar.parent-dragging::after {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 8px rgba(243, 156, 18, 0.4);
+  animation: parent-drag-pulse 1s infinite;
+}
+
+.gantt-bar.parent-dragging .gantt-bar-main {
+  background: linear-gradient(to bottom, #e74c3c, #c0392b);
+  box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.gantt-bar.parent-dragging .gantt-bar-text {
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+@keyframes parent-drag-pulse {
+  0%, 100% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 8px rgba(243, 156, 18, 0.4);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 4px 12px rgba(243, 156, 18, 0.6);
+    opacity: 0.9;
+  }
+}
+
+/* 关键路径任务样式 */
+.gantt-bar.critical-path {
+  position: relative;
+  background: linear-gradient(to right, #ff6b6b, #f53b57);
+  border: 2px solid #ff4757 !important;
+  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3) !important;
+  animation: critical-path-glow 2s infinite ease-in-out;
+  z-index: 10;
+}
+
+.gantt-bar.critical-path::before {
+  content: '⚠';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background: #ff4757;
+  color: white;
+  font-size: 10px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  z-index: 10;
+  font-weight: bold;
+}
+
+.gantt-bar.critical-path .gantt-bar-text {
+  color: #fff !important;
+  font-weight: bold !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.gantt-bar.critical-path:hover {
+  background: linear-gradient(to right, #ff5252, #e84393);
+  box-shadow: 0 4px 12px rgba(255, 82, 82, 0.4) !important;
+}
+
+.gantt-bar.critical-path .gantt-bar-progress {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+@keyframes critical-path-glow {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(255, 71, 87, 0.6);
+  }
+}
+
+.gantt-bar.progress-dragging {
+  box-shadow: 0 0 8px #4a90e2;
+  border-color: #4a90e2;
+  opacity: 0.95;
+}
+
+.gantt-bar.progress-dragging .gantt-progress-handle {
+  border-bottom-color: #ff9800;
+  filter: drop-shadow(0 2px 8px #ff9800);
+  border-bottom-width: 16px;
+  border-left-width: 12px;
+  border-right-width: 12px;
+  transition: all 0.1s;
+}
+
+
+
+/* 关键路径连接线样式 */
+.dependency-line.critical-path {
+  stroke: #ff5252;
+  stroke-width: 2px;
+  filter: drop-shadow(0 1px 3px rgba(255, 82, 82, 0.3));
+}
+
+.dependency-arrow.critical-path {
+  fill: #ff5252;
+}
+
+/* 右键菜单样式 */
+.gantt-context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  z-index: 9999;
+  min-width: 150px;
+  max-width: 250px;
+}
+
+.context-menu-header {
+  padding: 8px 16px;
+  font-weight: bold;
+  color: #606266;
+  font-size: 14px;
+  border-bottom: 1px solid #e0e0e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 5px;
+}
+
+.context-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #606266;
+  display: flex;
+  align-items: center;
+}
+
+.context-menu-item i {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.context-menu-item:hover {
+  background-color: #f5f7fa;
+  color: #409EFF;
+}
+
+/* 任务类型图标样式 */
+.task-type-icon {
+  margin-right: 4px;
+  font-size: 12px;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+/* 任务类型图标颜色 */
+.task-type-icon.deliverable {
+  color: #1890ff;
+}
+
+.task-type-icon.task {
+  color: #52c41a;
+}
+
+.task-type-icon.milestone {
+  color: #faad14;
+}
+
+/* GanttBars 弹框专用样式 - 确保最高层级 */
+.gantt-bars-dialog .el-dialog__wrapper {
+  z-index: 10002 !important;
+}
+
+.gantt-bars-dialog .el-dialog {
+  z-index: 10003 !important;
+}
+
+/* 确保弹框内的下拉组件在最顶层 */
+.gantt-bars-dialog .el-select-dropdown {
+  z-index: 10004 !important;
+}
+
+.gantt-bars-dialog .el-picker-panel {
+  z-index: 10004 !important;
+}
+
+.gantt-bars-dialog .el-color-dropdown {
+  z-index: 10004 !important;
+}
+
+.gantt-bars-dialog .el-color-picker__panel {
+  z-index: 10004 !important;
+}
+
+/* 确保所有Element UI的popper组件在弹框上方 */
+.gantt-bars-dialog .el-popper {
+  z-index: 10004 !important;
+}
+
+/* Milestone 标记样式 */
+.gantt-milestone-marker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.15s ease;
+  will-change: transform;
+  transform: translateZ(0); /* 启用硬件加速 */
+}
+
+.gantt-milestone-marker .milestone-diamond {
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  border: 2px solid #d68910;
+  border-radius: 3px;
+  transform: rotate(45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.gantt-milestone-marker .milestone-icon {
+  transform: rotate(-45deg);
+  font-size: 12px;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  line-height: 1;
+}
+
+.gantt-milestone-marker .milestone-title {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 600;
+  color: #333333;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 6px;
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  z-index: 12;
+  pointer-events: none;
+}
+
+/* Milestone 悬停效果 */
+.gantt-milestone-marker:hover .milestone-diamond {
+  background: linear-gradient(135deg, #f4d03f, #f39c12);
+  border-color: #e67e22;
+  transform: rotate(45deg) scale(1.1);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4);
+}
+
+/* Milestone 选中状态 */
+.gantt-milestone-marker.selected .milestone-diamond {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  border-color: #1f5f8b;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.5);
+}
+
+/* Milestone 拖拽状态 - 优化性能 */
+.gantt-milestone-marker.dragging {
+  transform: translateZ(0) scale(1.1);
+  z-index: 100;
+  will-change: transform;
+  transition: none; /* 拖拽时禁用过渡 */
+  backface-visibility: hidden; /* 避免拖拽闪烁 */
+}
+
+.gantt-milestone-marker.dragging .milestone-diamond {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  border-color: #a93226;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.5);
+}
+
+/* Milestone 连接点样式 */
+.gantt-milestone-marker .milestone-connection-points {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 11;
+}
+
+.gantt-milestone-marker .milestone-connection-point {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #3498db;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 12;
+  pointer-events: auto;
+  cursor: crosshair;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.gantt-milestone-marker .milestone-connection-left {
+  left: -16px; /* 与其他连接点保持一致 */
+}
+
+.gantt-milestone-marker .milestone-connection-right {
+  right: -16px; /* 与其他连接点保持一致 */
+}
+
+.gantt-milestone-marker:hover .milestone-connection-point,
+.gantt-milestone-marker .milestone-connection-point.active {
+  opacity: 1;
+}
+
+.gantt-milestone-marker .milestone-connection-point:hover {
+  background: #3498db;
+  border-color: #fff;
+  transform: translateY(-50%) scale(1.2);
+}
+
+.gantt-milestone-marker .milestone-connection-point.connecting {
+  background: #ff4757;
+  border-color: #fff;
+  box-shadow: 0 0 8px rgba(255, 71, 87, 0.5);
+}
+
+.gantt-milestone-marker .connection-dot {
+  display: none; /* 不需要内部点 */
+}
+
+/* 依赖类型选择器样式 */
+.gantt-dependency-type-selector {
+  width: 100%;
+}
+
+.gantt-dependency-type-option {
+  padding: 8px 12px !important;
+  height: auto !important;
+  line-height: 1.4 !important;
+}
+
+.dependency-type-icon {
+  font-size: 16px;
+  margin-right: 8px;
+  display: inline-block;
+  width: 20px;
+  text-align: center;
+}
+
+.dependency-type-label {
+  font-weight: 500;
+  color: #303133;
+}
+
+.dependency-type-description {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* Lag输入框样式 */
+.gantt-lag-input {
+  width: 100%;
+}
+
+.lag-help-text {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.lag-explanation {
+  margin-bottom: 8px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.lag-explanation strong {
+  color: #303133;
+}
+
+.lag-explanation ul {
+  margin: 6px 0 0 0;
+  padding-left: 18px;
+}
+
+.lag-explanation li {
+  margin: 2px 0;
+}
+
+.lag-current-info {
+  padding: 6px 8px;
+  background: #e7f5ff;
+  border-radius: 4px;
+  border-left: 3px solid #409eff;
+}
+
+.lag-effect {
+  color: #67c23a;
+  font-weight: 500;
+}
+
+/* 连线编辑弹框样式增强 */
+.gantt-link-edit-dialog .el-dialog__body {
+  padding: 20px;
+}
+
+.gantt-link-edit-dialog .el-form-item {
+  margin-bottom: 20px;
+}
+
+.gantt-link-edit-dialog .el-form-item__label {
+  font-weight: 500;
+  color: #303133;
+}
+
+/* 连线信息显示区域 */
+.gantt-link-info {
+  background: #f5f7fa;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border-left: 4px solid #409eff;
+}
+
+.gantt-link-info p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #606266;
+}
+
+.gantt-link-info strong {
+  color: #303133;
+  font-weight: 500;
+}
+
+/* 连接点视觉区分样式 */
+.connection-dot-start,
+.gantt-connection-dot-start {
+  background: #52c41a !important; /* 绿色表示开始点 */
+  position: relative;
+}
+
+.connection-dot-start::before,
+.gantt-connection-dot-start::before {
+  content: 'S';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8px;
+  font-weight: bold;
+  color: white;
+  line-height: 1;
+}
+
+.connection-dot-end,
+.gantt-connection-dot-end {
+  background: #f5222d !important; /* 红色表示结束点 */
+  position: relative;
+}
+
+.connection-dot-end::before,
+.gantt-connection-dot-end::before {
+  content: 'E';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8px;
+  font-weight: bold;
+  color: white;
+  line-height: 1;
+}
+
+/* 连接点hover效果增强 */
+.gantt-connection-start:hover .gantt-connection-dot-start,
+.milestone-connection-start:hover .connection-dot-start {
+  background: #389e0d !important;
+  transform: scale(1.3);
+  box-shadow: 0 0 8px rgba(82, 196, 26, 0.6);
+}
+
+.gantt-connection-end:hover .gantt-connection-dot-end,
+.milestone-connection-end:hover .connection-dot-end {
+  background: #cf1322 !important;
+  transform: scale(1.3);
+  box-shadow: 0 0 8px rgba(245, 34, 45, 0.6);
+}
+
+/* SVG箭头样式确保可见性 */
+.gantt-dependency-lines marker polygon {
+  stroke: none;
+  opacity: 1;
+}
+
+.gantt-dependency-line-visual {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 增强箭头的显示效果 */
+.gantt-dependency-lines marker {
+  fill-opacity: 1;
+  stroke-opacity: 1;
+}
+
+/* 贝塞尔曲线连接线样式 */
+.gantt-dependency-line.bezier {
+  stroke-dasharray: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gantt-dependency-line.bezier:hover {
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 3px rgba(52, 152, 219, 0.5));
+}
+
+.gantt-dependency-line.bezier.selected {
+  stroke-width: 3;
+  filter: drop-shadow(0 0 4px rgba(255, 71, 87, 0.6));
+}
+
+.gantt-dependency-line.bezier.highlighted {
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 4px rgba(24, 144, 255, 0.6));
+  animation: bezier-highlight 2s infinite;
+}
+
+@keyframes bezier-highlight {
+  0%, 100% {
+    stroke-opacity: 1;
+    stroke-width: 2.5;
+  }
+  50% {
+    stroke-opacity: 0.7;
+    stroke-width: 3;
+  }
+}

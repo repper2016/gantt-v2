@@ -7,6 +7,7 @@ import 'element-ui/lib/theme-chalk/index.css'
 import '@/styles/themes.css'
 import '@/styles/themes-dhtmlx.css'
 import '@/styles/performance.css'
+import '@/styles/gantt-bar.css'
 
 // 功能配置
 import { isDebuggingEnabled } from '@/config/features'
