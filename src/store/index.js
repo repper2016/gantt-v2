@@ -88,6 +88,18 @@ export default new Vuex.Store({
 
     // 列配置 - 支持自适应宽度
     columnConfig: [
+    ],
+
+    // 人员选项数据 - 支持Assignee列的下拉选择
+    assigneeOptions: [
+      { value: 'Zhou Sheng (VM/ECN1-A)', label: 'Zhou Sheng (VM/ECN1-A)', avatar: '/avatars/zhou-sheng.jpg' },
+      { value: 'Wang Tian (VM/ECN1-P)', label: 'Wang Tian (VM/ECN1-P)', avatar: '/avatars/wang-tian.jpg' },
+      { value: 'Li Mei (VM/ECN1-B)', label: 'Li Mei (VM/ECN1-B)', avatar: '/avatars/li-mei.jpg' },
+      { value: 'Chen Yile (VM/EMM1)', label: 'Chen Yile (VM/EMM1)', avatar: '/avatars/chen-yile.jpg' },
+      { value: 'Zhang Wei (VM/ECN1-C)', label: 'Zhang Wei (VM/ECN1-C)', avatar: '/avatars/zhang-wei.jpg' },
+      { value: 'Liu Jun (VM/ECN1-D)', label: 'Liu Jun (VM/ECN1-D)', avatar: '/avatars/liu-jun.jpg' },
+      { value: 'Yang Ming (VM/ECN2-A)', label: 'Yang Ming (VM/ECN2-A)', avatar: '/avatars/yang-ming.jpg' },
+      { value: 'Zhao Lei (VM/ECN2-B)', label: 'Zhao Lei (VM/ECN2-B)', avatar: '/avatars/zhao-lei.jpg' }
     ]
   },
   mutations: {
@@ -147,7 +159,24 @@ export default new Vuex.Store({
               }
             }
 
-            Object.assign(task, updates)
+            // 确保更新所有必要字段
+            const finalUpdates = {
+              ...task, // 首先复制原有任务的所有字段
+              ...updates, // 然后应用新的更新
+              name: updates.title || updates.name || task.name || '',  // 同时更新 name 字段
+              title: updates.title || updates.name || task.title || '',  // 同时更新 title 字段
+              status: updates.status || task.status || 'Not Started',
+              progress: updates.progress !== undefined ? updates.progress : (task.progress || 0),
+              startDate: updates.startDate || task.startDate || moment().format('YYYY-MM-DD'),
+              endDate: updates.endDate || task.endDate || moment().format('YYYY-MM-DD'),
+              assignee: updates.assignee || task.assignee || '',
+              links: updates.links || task.links || [],
+              parentId: updates.parentId !== undefined ? updates.parentId : task.parentId,
+              childrenTasks: updates.childrenTasks || task.childrenTasks || [],
+              type: updates.type || task.type || 'task'
+            };
+
+            Object.assign(task, finalUpdates)
 
             // 如果更新后的任务是milestone类型，进行规范化
             if (task.type === 'milestone') {
@@ -189,64 +218,68 @@ export default new Vuex.Store({
               }
             }
 
-            // 根据配置决定是否同步父子节点时间
-            // 只有当 linkParentChildDates 为 true 且是父节点拖拽时才同步子节点
-            if (isParentNode && daysDelta !== undefined && task.children && linkParentChildDates) {
-              console.log(`[父子时间关联] 父节点 ${task.name} 移动 ${daysDelta} 天，开始同步子节点`)
-
+            // 如果是父节点且启用了父子节点时间关联
+            if (isParentNode && linkParentChildDates) {
+              // 更新子任务的时间
               const moveChildren = (children, depth = 1) => {
-                children.forEach(child => {
-                  const childStartDate = moment(child.startDate).add(daysDelta, 'days')
-                  const childEndDate = moment(child.endDate).add(daysDelta, 'days')
-
-                  console.log(`  ${'  '.repeat(depth)}移动子节点: ${child.name}`)
-                  console.log(`  ${'  '.repeat(depth)}原日期: ${child.startDate} - ${child.endDate}`)
-                  console.log(`  ${'  '.repeat(depth)}新日期: ${childStartDate.format('YYYY-MM-DD')} - ${childEndDate.format('YYYY-MM-DD')}`)
-
-                  // 更新子节点日期
-                  child.startDate = childStartDate.format('YYYY-MM-DD')
-                  child.endDate = childEndDate.format('YYYY-MM-DD')
-
-                  // 如果有计划日期，也要同步移动
-                  if (child.planStartDate) {
-                    child.planStartDate = moment(child.planStartDate).add(daysDelta, 'days').format('YYYY-MM-DD')
-                  }
-                  if (child.planEndDate) {
-                    child.planEndDate = moment(child.planEndDate).add(daysDelta, 'days').format('YYYY-MM-DD')
-                  }
-
-                  // 重新计算子节点duration
-                  if (child.startDate && child.endDate) {
+                if (!children || !Array.isArray(children)) return
+                for (const child of children) {
+                  if (daysDelta) {
+                    // 如果有时间偏移量，按偏移量移动子任务
+                    if (child.startDate) {
+                      child.startDate = moment(child.startDate).add(daysDelta, 'days').format('YYYY-MM-DD')
+                    }
+                    if (child.endDate) {
+                      child.endDate = moment(child.endDate).add(daysDelta, 'days').format('YYYY-MM-DD')
+                    }
+                  } else {
+                    // 否则，确保子任务在父任务的时间范围内
                     const childStart = moment(child.startDate)
                     const childEnd = moment(child.endDate)
-                    if (childStart.isValid() && childEnd.isValid()) {
-                      child.duration = childEnd.diff(childStart, 'days') + 1
+                    const parentStart = moment(task.startDate)
+                    const parentEnd = moment(task.endDate)
+
+                    if (childStart.isBefore(parentStart)) {
+                      child.startDate = task.startDate
+                    }
+                    if (childEnd.isAfter(parentEnd)) {
+                      child.endDate = task.endDate
                     }
                   }
 
-                  // 递归处理子节点的子节点
-                  if (child.children && child.children.length > 0) {
+                  // 递归处理子任务的子任务
+                  if (child.children) {
                     moveChildren(child.children, depth + 1)
                   }
-                })
+                }
               }
 
-              moveChildren(task.children)
-              console.log(`[父子时间关联] 父节点 ${task.name} 及其所有子节点移动完成`)
+              if (task.children) {
+                moveChildren(task.children)
+              }
             }
 
             return true
           }
-          if (task.children && task.children.length > 0) {
-            if (updateTask(task.children)) {
-              return true
-            }
+
+          if (task.children && updateTask(task.children)) {
+            return true
           }
         }
         return false
       }
 
       updateTask(state.ganttData)
+
+      // 保存到 localStorage
+      try {
+        localStorage.setItem('ganttData', JSON.stringify({
+          tasks: state.ganttData,
+          dependencies: state.dependencies
+        }))
+      } catch (error) {
+        console.warn('[数据保存] 保存到 localStorage 失败:', error)
+      }
     },
     ADD_DEPENDENCY(state, dependency) {
       const exists = state.dependencies.find(dep =>
@@ -482,31 +515,48 @@ export default new Vuex.Store({
     },
     // 任务管理
     ADD_NEW_TASK(state, { task, parentId }) {
-      if (parentId) {
-        // 添加到指定父任务下
-        const addToParent = (tasks) => {
-          for (const parent of tasks) {
-            if (parent.id === parentId) {
-              if (!parent.children) {
-                Vue.set(parent, 'children', [])
-              }
-              parent.children.push(task)
-              return true
+      // 生成唯一ID
+      if (!task.id) {
+        task.id = `task-${Date.now()}`
+      }
+
+      const addToParent = (tasks) => {
+        for (const t of tasks) {
+          if (t.id === parentId) {
+            if (!t.children) {
+              t.children = []
             }
-            if (parent.children && addToParent(parent.children)) {
+            t.children.push(task)
+            return true
+          }
+          if (t.children && t.children.length > 0) {
+            if (addToParent(t.children)) {
               return true
             }
           }
-          return false
         }
-        addToParent(state.ganttData)
+        return false
+      }
+
+      // 如果有父任务ID，添加到父任务的children中
+      if (parentId) {
+        if (!addToParent(state.ganttData)) {
+          console.warn(`未找到父任务: ${parentId}`)
+          state.ganttData.push(task)
+        }
       } else {
-        // 添加到根级别
-        state.ganttData.push({
-          id: task.id,
-          name: task.name,
-          children: [task]
-        })
+        // 如果没有父任务ID，直接添加到根级别
+        state.ganttData.push(task)
+      }
+
+      // 保存到localStorage
+      try {
+        localStorage.setItem('ganttData', JSON.stringify({
+          tasks: state.ganttData,
+          dependencies: state.dependencies
+        }))
+      } catch (error) {
+        console.error('保存到localStorage失败:', error)
       }
     },
     DELETE_TASK(state, taskId) {
@@ -1948,6 +1998,11 @@ export default new Vuex.Store({
               return task.name && filterValue.some(value =>
                 task.name.toLowerCase().includes(value.toLowerCase())
               )
+            case 'assignee':
+              return task.assignee && filterValue.some(value =>
+                task.assignee.toLowerCase().includes(value.toLowerCase())
+              )
+
             case 'status':
               const status = task.progress >= 100 ? 'completed' : task.progress > 0 ? 'in-progress' : 'not-started'
               return status === filterValue
@@ -2031,6 +2086,9 @@ export default new Vuex.Store({
         return -1
       }
       return findDepth(state.ganttData, taskId)
-    }
+    },
+
+    // 获取人员选项数据
+    getAssigneeOptions: state => state.assigneeOptions
   }
 })

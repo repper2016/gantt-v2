@@ -109,10 +109,10 @@
           @toggle-collapse="handleToggleCollapse"
           @scroll="handleTableScroll"
           @show-column-config="showColumnConfigDialog"
-          @edit-task="editTask"
-          @delete-task="deleteTask"
-          @add-sibling-task="addSiblingTask"
-          @add-child-task="addChildTask"
+                  @edit-task="editTask"
+        @delete-task="handleDeleteTask"
+        @add-sibling-task="handleShowAddSiblingDialog"
+        @add-child-task="handleShowAddChildDialog"
           @table-mounted="handleTableMounted"
           @column-reorder="handleColumnReorder"
           @column-resize="handleColumnResize"
@@ -346,223 +346,7 @@
       </span>
     </el-dialog>
 
-    <!-- 添加任务对话框 -->
-    <el-dialog
-      :title="dialogTitle"
-      :visible.sync="showAddDialog"
-      width="700px"
-      :close-on-click-modal="false"
-      :close-on-press-escape="true"
-      :append-to-body="false"
-      :modal-append-to-body="false"
-      @close="resetTaskForm"
-    >
-      <el-form
-        :model="newTask"
-        ref="addTaskForm"
-        label-width="140px"
-        size="medium"
-        :rules="taskFormRules"
-      >
-        <el-form-item
-          label="Task Name"
-          prop="name"
-        >
-          <el-input
-            v-model="newTask.name"
-            placeholder="Enter task name"
-            clearable
-          />
-        </el-form-item>
-
-        <!-- 父任务显示/选择 -->
-        <el-form-item
-          v-if="shouldShowParentSelection"
-          label="Parent Task"
-          prop="parentId"
-        >
-          <el-select
-            v-model="newTask.parentId"
-            placeholder="Select parent task (optional)"
-            style="width: 100%"
-            clearable
-            filterable
-            :append-to-body="true"
-          >
-            <el-option label="Create as Root Task" :value="null"></el-option>
-            <el-option label="Add New Parent Group" :value="'new_parent'"></el-option>
-            <el-option-group
-              v-for="group in parentTaskOptions"
-              :key="group.label"
-              :label="group.label"
-            >
-              <el-option
-                v-for="task in group.options"
-                :key="task.value"
-                :label="task.label"
-                :value="task.value"
-              />
-            </el-option-group>
-          </el-select>
-        </el-form-item>
-
-        <!-- 父任务名称只读显示 - Add Sibling Task时自动选中且不可修改 -->
-        <el-form-item
-          v-if="shouldShowParentDisplay"
-          label="Parent Task"
-        >
-          <el-input
-            :value="parentTaskDisplayName"
-            readonly
-            style="width: 100%"
-            placeholder="无父任务"
-          >
-            <template slot="prepend">
-              <i class="el-icon-lock"></i>
-            </template>
-            <template slot="append">
-              <span style="color: #909399; font-size: 12px;">不可修改</span>
-            </template>
-          </el-input>
-        </el-form-item>
-
-        <!-- 新增父级组表单 -->
-        <el-form-item
-          v-if="newTask.parentId === 'new_parent'"
-          label="New Parent Name"
-          prop="newParentName"
-        >
-          <el-input
-            v-model="newTask.newParentName"
-            placeholder="Enter new parent group name"
-            clearable
-          />
-        </el-form-item>
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item
-              label="Start Date"
-              prop="startDate"
-            >
-              <el-date-picker
-                v-model="newTask.startDate"
-                type="date"
-                placeholder="Select start date"
-                style="width: 100%"
-                format="yyyy-MM-dd"
-                value-format="yyyy-MM-dd"
-                :append-to-body="true"
-                @change="validateDateRange"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item
-              label="End Date"
-              prop="endDate"
-            >
-              <el-date-picker
-                v-model="newTask.endDate"
-                type="date"
-                placeholder="Select end date"
-                style="width: 100%"
-                format="yyyy-MM-dd"
-                value-format="yyyy-MM-dd"
-                :append-to-body="true"
-                :picker-options="endDatePickerOptions"
-                @change="validateDateRange"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="Plan Start">
-              <el-date-picker
-                v-model="newTask.planStartDate"
-                type="date"
-                placeholder="Select plan start date"
-                style="width: 100%"
-                format="yyyy-MM-dd"
-                value-format="yyyy-MM-dd"
-                :append-to-body="true"
-                @change="validatePlanDateRange"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="Plan End">
-              <el-date-picker
-                v-model="newTask.planEndDate"
-                type="date"
-                placeholder="Select plan end date"
-                style="width: 100%"
-                format="yyyy-MM-dd"
-                value-format="yyyy-MM-dd"
-                :append-to-body="true"
-                :picker-options="planEndDatePickerOptions"
-                @change="validatePlanDateRange"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="Progress">
-              <el-slider
-                v-model="newTask.progress"
-                :min="0"
-                :max="100"
-                show-input
-                :show-input-controls="false"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="Priority">
-              <el-select v-model="newTask.priority" placeholder="Select priority" :append-to-body="true">
-                <el-option label="Low" value="low"></el-option>
-                <el-option label="Medium" value="medium"></el-option>
-                <el-option label="High" value="high"></el-option>
-                <el-option label="Critical" value="critical"></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="Color">
-              <el-color-picker
-                v-model="newTask.color"
-                :predefine="predefineColors"
-                :append-to-body="true"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-form-item label="Description">
-          <el-input
-            v-model="newTask.description"
-            type="textarea"
-            :rows="3"
-            placeholder="Enter task description (optional)"
-          />
-        </el-form-item>
-      </el-form>
-
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="showAddDialog = false">Cancel</el-button>
-        <el-button type="primary" @click="addNewTask" :loading="addingTask">
-          {{ addingTask ? '处理中...' : dialogButtonText }}
-        </el-button>
-      </span>
-    </el-dialog>
-
-
-
-    <!-- 设置对话框 -->
+        <!-- 设置对话框 -->
     <SettingsDialog
       :visible="showSettingsDialog"
       @update:visible="handleSettingsVisibleChange"
@@ -594,6 +378,21 @@
       @generate-test-data="generateTestData"
       @settings-save="handleSettingsSave"
     />
+
+    <!-- 统一的编辑对话框 -->
+    <edit-dialog
+      :visible="editDialogVisible"
+      :type="editDialogType"
+      :mode="editDialogMode"
+      :task="editingTask"
+      :parent-task="parentTask"
+      :form="editDialogForm"
+      :gantt-data="ganttData"
+      :flatten-tasks="flattenTasks"
+      @task-updated="handleTaskUpdated"
+      @task-added="handleTaskAdded"
+      @close="handleEditDialogClose"
+    />
   </div>
 </template>
 
@@ -612,6 +411,7 @@ import SettingsDialog from './SettingsDialog.vue'
 import GanttToolbar from './GanttToolbar.vue'
 import debounce from 'lodash/debounce'
 import { DependencyConstraintEngine } from '@/services/dependencyConstraints'
+import EditDialog from './editDialog/index.vue'
 
 export default {
   name: 'GanttChart',
@@ -624,7 +424,8 @@ export default {
     PerformanceMonitor,
     GanttOverviewTimeline,
     SettingsDialog,
-    GanttToolbar
+    GanttToolbar,
+    EditDialog
   },
   props: {
     data: {
@@ -835,29 +636,6 @@ export default {
       // 列配置对话框
       showColumnDialog: false,
 
-      // 添加任务对话框
-      showAddDialog: false,
-      addingTask: false,
-      dialogMode: 'add', // 'add', 'edit', 'add-sibling', 'add-child'
-      editingTaskId: null,
-      editingParentTask: null,
-      editingSiblingTask: null, // 记录正在编辑的任务ID
-      siblingSourceTask: null, // 记录添加同级任务的源任务
-      childSourceTask: null, // 记录添加子任务的源任务
-      newTask: {
-        name: '',
-        parentId: null,
-        newParentName: '',
-        startDate: '',
-        endDate: '',
-        planStartDate: '',
-        planEndDate: '',
-        progress: 0,
-        priority: 'medium',
-        color: '#3498db',
-        description: ''
-      },
-
       // 拖拽排序实例
       sortableInstance: null,
 
@@ -934,7 +712,28 @@ export default {
       timelineRefreshKey: 0,
 
       // 表格筛选状态
-      tableFilters: {}
+      tableFilters: {},
+
+      taskForm: {
+        id: '',
+        name: '',
+        startDate: '',
+        endDate: '',
+        progress: 0,
+        assignee: '',
+        status: '',
+        attachments: [],
+        links: [],
+        parentId: null
+      },
+
+      // 编辑对话框数据
+      editDialogVisible: false,
+      editDialogType: 'task',
+      editDialogMode: 'add',
+      editingTask: null,
+      parentTask: null,
+      editDialogForm: {}
     }
   },
   computed: {
@@ -1386,7 +1185,26 @@ export default {
       return {
         '--gantt-min-height': `${this.actualGanttHeight  }px`
       }
-    }
+    },
+    taskDialogTitle: {
+      get() {
+        switch (this.dialogMode) {
+          case 'edit':
+            return 'Edit Task'
+          case 'add-sibling':
+            return `Add Sibling Task (Sibling to: ${this.siblingSourceTask?.name || ''})`
+          case 'add-child':
+            return `Add Child Task (Parent: ${this.childSourceTask?.name || ''})`
+          case 'add':
+          default:
+            return 'Add New Task'
+        }
+      },
+      set(value) {
+        // 我们不需要实际设置值，因为标题是根据mode自动计算的
+        console.warn('taskDialogTitle is computed based on dialogMode and should not be set directly')
+      }
+    },
   },
   methods: {
     ...mapActions(['toggleTaskCollapsed', 'jumpToToday', 'clearLineageHighlight', 'setLineageHighlight']),
@@ -1853,31 +1671,23 @@ export default {
     },
 
     // 处理来自GanttBars组件的编辑任务事件
-    handleEditTaskFromBars(payload) {
-      console.log('[甘特图] 收到编辑任务请求:', payload);
-
+    handleEditTaskFromBars(task) {
       // 设置编辑模式
-      this.dialogMode = 'edit';
-      this.editingTaskId = payload.taskId;
+      this.editDialogMode = 'edit'
+      this.editDialogType = task.type || 'task'
 
-      // 设置编辑表单的初始值
-      const task = payload.task;
-      this.newTask = {
-        name: task.name,
-        startDate: task.startDate,
-        endDate: task.endDate,
-        planStartDate: task.planStartDate,
-        planEndDate: task.planEndDate,
-        progress: task.progress || 0,
-        color: task.color || '#3498db',
-        milestone: task.milestone || false,
-        type: task.type || 'task'
-      };
+      // 设置编辑任务数据
+      this.editingTask = { ...task }
 
-      // 显示统一弹框
-      this.showAddDialog = true;
+      // 查找并设置父任务
+      if (task.parentId) {
+        this.parentTask = this.findParentTask(task.parentId)
+      } else {
+        this.parentTask = null
+      }
 
-      console.log('[甘特图] 编辑弹框已显示');
+      // 显示编辑对话框
+      this.editDialogVisible = true
     },
     // 处理图表区域点击
     handleChartAreaClick() {
@@ -2289,110 +2099,62 @@ export default {
     editTask(task) {
       console.log('编辑任务:', task)
 
-      // 设置编辑模式
-      this.dialogMode = 'edit'
-      this.editingTaskId = task.id
-
-      // 查找父任务以进行类型验证
-      const parentTask = this.findParentTask(task.id)
-      this.editingParentTask = parentTask
-
-      // 预填充任务数据，包括正确的父任务信息，确保父任务自动选中且可修改
-      this.newTask = {
-        name: task.name || '',
-        type: task.type || 'task',
-        parentId: task.parentId || null, // 自动选中当前任务的父任务
-        newParentName: '',
-        startDate: task.startDate || '',
-        endDate: task.endDate || '',
-        planStartDate: task.planStartDate || '',
-        planEndDate: task.planEndDate || '',
-        progress: task.progress || 0,
-        priority: task.priority || 'medium',
-        color: task.color || '#3498db',
-        description: task.description || ''
+      // 设置编辑对话框参数
+      this.editDialogType = task.type || 'task'
+      this.editDialogMode = 'edit'
+      this.editingTask = {
+        ...task,
+        childrenTasks: this.findChildrenTasks(task.id)
       }
-
-      // 打开对话框
-      this.showAddDialog = true
+      this.parentTask = this.findParentTask(task.parentId)
+      this.editDialogVisible = true
     },
 
-    // 添加同级任务
-    addSiblingTask(task) {
-      console.log('添加同级任务:', task)
-
-      // 设置同级添加模式
-      this.dialogMode = 'add-sibling'
-      this.siblingSourceTask = task
-
-      // 预填充父级任务信息和推荐日期
-      const siblingEndDate = task.endDate ? moment(task.endDate) : moment()
-      const recommendedStartDate = siblingEndDate.clone().add(1, 'day')
-      const recommendedEndDate = recommendedStartDate.clone().add(
-        task.endDate && task.startDate ?
-          moment(task.endDate).diff(moment(task.startDate), 'days') : 7,
-        'days'
-      )
-
-      this.newTask = {
-        name: '',
-        parentId: task.parentId || null, // 与源任务同一父级，自动选中且不可修改
-        newParentName: '',
-        startDate: recommendedStartDate.format('YYYY-MM-DD'),
-        endDate: recommendedEndDate.format('YYYY-MM-DD'),
-        planStartDate: '',
-        planEndDate: '',
-        progress: 0,
-        priority: task.priority || 'medium', // 沿用源任务优先级
-        color: task.color || '#3498db', // 沿用源任务颜色
-        description: ''
-      }
-
-      // 打开对话框
-      this.showAddDialog = true
-    },
 
     // 添加子任务
     addChildTask(task) {
       console.log('添加子任务:', task)
 
-      // 设置子任务添加模式
-      this.dialogMode = 'add-child'
-      this.childSourceTask = task
-
-      // 预填充父级为当前任务，并设置推荐日期
-      const parentStartDate = task.startDate ? moment(task.startDate) : moment()
-      const parentEndDate = task.endDate ? moment(task.endDate) : moment().add(7, 'days')
-
-      // 子任务建议在父任务时间范围内
-      const recommendedStartDate = parentStartDate.clone()
-      const recommendedEndDate = parentStartDate.clone().add(
-        Math.max(1, Math.floor(parentEndDate.diff(parentStartDate, 'days') / 3)),
-        'days'
-      )
-
-      this.newTask = {
-        name: '',
-        parentId: task.id, // 父级为当前任务
-        newParentName: '',
-        startDate: recommendedStartDate.format('YYYY-MM-DD'),
-        endDate: recommendedEndDate.format('YYYY-MM-DD'),
-        planStartDate: '',
-        planEndDate: '',
-        progress: 0,
-        priority: task.priority || 'medium', // 沿用父任务优先级
-        color: task.color || '#3498db', // 沿用父任务颜色
-        description: ''
+      // 检查是否可以添加子任务
+      if (task.type === 'milestone') {
+        this.$message.warning('Milestone类型不能添加子任务')
+        return
       }
 
-      // 打开对话框
-      this.showAddDialog = true
+      // 设置对话框参数
+      this.editDialogType = 'task' // 子任务默认类型为task
+      this.editDialogMode = 'add-child'
+      this.editingTask = null
+      this.parentTask = task
+
+      // 设置默认日期范围
+      const today = moment().format('YYYY-MM-DD')
+      this.editDialogForm = {
+        startDate: today,
+        endDate: moment().add(7, 'days').format('YYYY-MM-DD'),
+        type: 'task',
+        progress: 0,
+        status: 'Not Started',
+        assignee: '',
+        title: '',
+        description: '',
+        parentId: task.id
+      }
+
+      // 显示对话框
+      this.editDialogVisible = true
     },
 
-    // 删除任务
-    deleteTask(task) {
+    // 处理删除任务
+    handleDeleteTask(task) {
+      console.log('删除任务:', task)
       this.$store.dispatch('deleteTask', task.id)
-      this.autoRangeDebounced() // 删除后自动 range
+
+      // 刷新视图
+      this.refreshTableData()
+      this.refreshChart()
+
+      this.$message.success(`任务 "${task.name}" 已删除`)
     },
 
     // 开始调整大小
@@ -3045,57 +2807,43 @@ export default {
     },
 
     // 处理添加同级任务
-    addSiblingTask(siblingTask) {
-      // 查找父任务类型（如果存在）
-      const parentTask = this.findParentTask(siblingTask.id)
-      const parentType = parentTask ? (parentTask.type || 'task') : null
+    addSiblingTask(task) {
+      console.log('添加同级任务:', task)
 
-      // 如果父任务是milestone类型，不能添加同级任务
-      if (parentType === 'milestone') {
-        this.$message.error('Milestone类型下不能添加同级任务')
+      // 获取父任务
+      const parentTask = this.findParentTask(task.id)
+
+      // 检查父任务类型是否允许添加同级任务
+      if (parentTask && parentTask.type === 'milestone') {
+        this.$message.warning('Milestone类型下不能添加同级任务')
         return
       }
 
-      // 设置弹框模式
-      this.dialogMode = 'add'
-      this.editingTaskId = null
-      this.editingParentTask = parentTask
-      this.editingSiblingTask = siblingTask
+      // 设置对话框参数
+      this.editDialogType = task.type || 'task' // 同级任务类型与当前任务相同
+      this.editDialogMode = 'add-sibling'
+      this.editingTask = task // 传入兄弟任务以便查找父任务
+      this.parentTask = parentTask
 
-      // 重置表单并设置默认值
-      this.resetTaskForm()
-      this.newTask = {
-        ...this.newTask,
-        name: 'New Task',
-        type: 'task',
-        startDate: moment().format('YYYY-MM-DD'),
-        endDate: moment().add(7, 'days').format('YYYY-MM-DD'),
-        color: this.getRandomTaskColor()
+      // 设置默认日期范围
+      const today = moment().format('YYYY-MM-DD')
+      this.editDialogForm = {
+        startDate: today,
+        endDate: this.editDialogType === 'milestone' ? today : moment().add(7, 'days').format('YYYY-MM-DD'),
+        type: task.type || 'task',
+        progress: 0,
+        status: 'Not Started',
+        assignee: '',
+        title: '',
+        description: '',
+        parentId: parentTask ? parentTask.id : null
       }
 
-      // 显示弹框
-      this.showAddDialog = true
+      // 显示对话框
+      this.editDialogVisible = true
     },
 
-    // 查找父任务
-    findParentTask(taskId) {
-      const searchParent = (tasks, targetId) => {
-        for (const task of tasks) {
-          if (task.children && Array.isArray(task.children)) {
-            for (const child of task.children) {
-              if (child.id === targetId) {
-                return task
-              }
-            }
-            const found = searchParent(task.children, targetId)
-            if (found) return found
-          }
-        }
-        return null
-      }
 
-      return searchParent(this.ganttData, targetId)
-    },
 
     // 处理视图模式变化
     handleViewModeChange(newMode) {
@@ -3783,46 +3531,167 @@ export default {
         // === 工具栏相关事件处理方法 ===
 
         // 处理显示添加任务弹框
-    handleShowAddDialog(taskType) {
-      // 设置弹框模式和任务类型
-      this.dialogMode = 'add'
-      this.editingTaskId = null
+    handleShowAddDialog(type = 'task') {
+      // 设置对话框参数
+      this.editDialogType = type;
+      this.editDialogMode = 'add';
+      this.editingTask = null;
+      this.parentTask = null;
 
-      // 验证任务类型是否可以添加
+      // 如果是milestone类型，设置相同的开始和结束日期
+      if (type === 'milestone') {
+        const today = moment().format('YYYY-MM-DD');
+        this.editDialogForm = {
+          startDate: today,
+          endDate: today
+        };
+      } else {
+        this.editDialogForm = {};
+      }
+
+      this.editDialogVisible = true;
+    },
+
+    // 处理对话框关闭
+    handleEditDialogClose() {
+      this.editDialogVisible = false;
+      this.editingTask = null;
+      this.parentTask = null;
+    },
+
+    // 处理任务更新
+    async handleTaskUpdated(updatedTask) {
       try {
-        this.$store.commit('VALIDATE_TASK_TYPE', {
-          taskType,
-          parentType: null,
-          isRoot: true
-        })
+        console.log('更新任务数据:', updatedTask);
+
+        // 确保更新所有必要字段，特别是状态字段
+        const updates = {
+          ...updatedTask,
+          name: updatedTask.title,  // 同时更新 name 字段
+          title: updatedTask.title,
+          status: updatedTask.status || 'Not Started',  // 确保状态字段有值
+          progress: updatedTask.progress || 0,
+          startDate: updatedTask.startDate,
+          endDate: updatedTask.endDate,
+          assignee: updatedTask.assignee,
+          links: updatedTask.links || [],
+          parentId: updatedTask.parentId,
+          childrenTasks: updatedTask.childrenTasks || []
+        };
+
+        console.log('准备更新的数据:', updates);
+
+        // 更新任务数据
+        await this.$store.dispatch('updateGanttItem', {
+          id: updatedTask.id,
+          updates,
+          isParentNode: updatedTask.childrenTasks && updatedTask.childrenTasks.length > 0,
+          linkParentChildDates: this.$store.state.linkParentChildDates
+        });
+
+        // 更新表格数据
+        this.refreshTableData();
+
+        // 更新甘特图视图
+        this.$nextTick(() => {
+          // 强制刷新视图
+          this.$forceUpdate();
+
+          // 更新右侧区域宽度
+          this.updateRightAreaWidth();
+
+          // 刷新时间轴
+          this.timelineRefreshKey++;
+
+          // 刷新甘特图
+          this.refreshChart();
+        });
+
+        this.$message.success('Task updated successfully!');
       } catch (error) {
-        this.$message.error(error.message)
-        return
+        console.error('更新任务失败:', error);
+        this.$message.error('Update failed, please try again');
       }
+    },
 
-      // 根据任务类型设置默认值
-      const taskTypeConfig = {
-        'task': { name: 'New Task', type: 'task' },
-        'deliverable': { name: 'New Deliverable', type: 'deliverable' },
-        'milestone': { name: 'New Milestone', type: 'milestone', milestone: true }
+    // 处理任务添加
+    async handleTaskAdded(taskData) {
+      try {
+        // 生成任务ID
+        const taskId = this.generateUniqueTaskId();
+
+        // 构建完整的任务数据
+        const newTask = {
+          id: taskId,
+          name: taskData.title,
+          title: taskData.title,
+          type: taskData.type,
+          startDate: taskData.startDate,
+          endDate: taskData.endDate,
+          progress: taskData.progress || 0,
+          status: taskData.status || 'Not Started',
+          assignee: taskData.assignee || '',
+          links: taskData.links || [],
+          children: [],
+          parentId: taskData.parentId,
+          collapsed: false
+        };
+
+        // 根据不同模式处理任务添加
+        if (taskData.mode === 'add-child') {
+          // 添加子任务
+          await this.$store.dispatch('addNewTask', {
+            task: newTask,
+            parentId: taskData.parentId,
+            mode: 'add-child'
+          });
+        } else if (taskData.mode === 'add-sibling') {
+          // 添加同级任务
+          await this.$store.dispatch('addNewTask', {
+            task: newTask,
+            parentId: taskData.parentId,
+            mode: 'add-sibling'
+          });
+        } else {
+          // 普通添加
+          await this.$store.dispatch('addNewTask', {
+            task: newTask,
+            parentId: taskData.parentId,
+            mode: 'add'
+          });
+        }
+
+        // 更新 localStorage
+        const ganttData = JSON.parse(localStorage.getItem('ganttData') || '[]');
+        ganttData.push(newTask);
+        localStorage.setItem('ganttData', JSON.stringify(ganttData));
+
+        // 刷新视图
+        await this.refreshTableData();
+        await this.refreshChart();
+
+        // 滚动到新添加的任务
+        this.$nextTick(() => {
+          this.scrollToTask(newTask.id);
+        });
+
+        // 显示成功消息
+        this.$message.success('任务添加成功');
+
+        // 关闭对话框
+        this.editDialogVisible = false;
+      } catch (error) {
+        console.error('添加任务失败:', error);
+        this.$message.error('添加任务失败，请重试');
       }
+    },
 
-      const config = taskTypeConfig[taskType] || taskTypeConfig['task']
-
-      // 重置表单并设置默认值
-      this.resetTaskForm()
-      this.newTask = {
-        ...this.newTask,
-        name: config.name,
-        type: config.type,
-        startDate: moment().format('YYYY-MM-DD'),
-        endDate: config.milestone ? moment().format('YYYY-MM-DD') : moment().add(7, 'days').format('YYYY-MM-DD'), // milestone通常是单天
-        color: this.getRandomTaskColor(),
-        ...(config.milestone && { milestone: true })
-      }
-
-      // 显示弹框
-      this.showAddDialog = true
+    // 处理编辑对话框关闭
+    handleEditDialogClose() {
+      this.editDialogVisible = false;
+      this.editingTask = null;
+      this.parentTask = null;
+      this.editDialogForm = {};
     },
 
     // 处理批量删除
@@ -4282,9 +4151,198 @@ export default {
           this.$emit('task-updated', task);
         }
       });
-    }
+    },
+    async addTask(task) {
+      try {
+        // 验证任务数据
+        if (!task.name || !task.startDate || !task.endDate) {
+          throw new Error('任务信息不完整');
+        }
+
+        // 格式化日期
+        const formattedTask = {
+          ...task,
+          startDate: moment(task.startDate).format('YYYY-MM-DD HH:mm:ss'),
+          endDate: moment(task.endDate).format('YYYY-MM-DD HH:mm:ss')
+        };
+
+        // 添加任务
+        await this.$store.dispatch('addTask', formattedTask);
+
+        // 刷新图表
+        this.refreshChart();
+
+        return true;
+      } catch (error) {
+        console.error('添加任务失败:', error);
+        throw error;
+      }
+    },
+
+    // 处理任务更新事件
+    async handleTaskUpdated(updatedTask) {
+      try {
+        // 更新任务数据
+        await this.$store.dispatch('updateGanttItem', {
+          id: updatedTask.id,
+          updates: updatedTask,
+          isParentNode: updatedTask.childrenTasks && updatedTask.childrenTasks.length > 0,
+          linkParentChildDates: this.$store.state.linkParentChildDates
+        })
+
+        // 更新甘特图视图
+        this.$nextTick(() => {
+          // 强制刷新视图
+          this.$forceUpdate()
+
+          // 更新右侧区域宽度
+          this.updateRightAreaWidth()
+          // 刷新时间轴
+          this.timelineRefreshKey++
+        })
+
+        this.$message.success('任务更新成功！')
+      } catch (error) {
+        console.error('更新任务失败:', error)
+        this.$message.error('更新失败，请重试')
+      }
+    },
+
+    // 处理任务添加
+    handleTaskAdded(newTask) {
+      // 更新表格数据
+      this.refreshTableData()
+
+      // 更新甘特图视图
+      this.$nextTick(() => {
+        this.refreshChart()
+
+        // 滚动到新添加的任务
+        this.scrollToTask(newTask.id)
+      })
+    },
+
+    // 滚动到指定任务
+    scrollToTask(taskId) {
+      const taskElement = document.querySelector(`[data-task-id="${taskId}"]`)
+      if (taskElement) {
+        taskElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    },
+
+    // 显示编辑任务对话框
+    handleShowEditDialog(task) {
+      this.editDialogType = task.type || 'task'
+      this.editDialogMode = 'edit'
+      this.editingTask = {
+        ...task,
+        childrenTasks: this.findChildrenTasks(task.id)
+      };
+      this.parentTask = this.findParentTask(task.parentId)
+      this.editDialogVisible = true
+    },
+
+    // 显示添加子任务对话框
+    handleShowAddChildDialog(task) {
+      console.log('显示添加子任务对话框:', task);
+      if (!task) return;
+
+      // 检查父任务类型是否允许添加子任务
+      if (task.type === 'milestone') {
+        this.$message.warning('Milestone类型不能添加子任务');
+        return;
+      }
+
+      // 设置对话框参数
+      this.editDialogType = 'task'; // 子任务只能是task类型
+      this.editDialogMode = 'add-child';
+      this.editingTask = null;
+      this.parentTask = task;
+
+      // 设置默认日期范围
+      const today = moment().format('YYYY-MM-DD');
+      this.editDialogForm = {
+        startDate: today,
+        endDate: moment().add(7, 'days').format('YYYY-MM-DD')
+      };
+
+      this.editDialogVisible = true;
+    },
+
+    // 显示添加同级任务对话框
+    handleShowAddSiblingDialog(task) {
+      console.log('显示添加同级任务对话框:', task);
+      if (!task) return;
+
+      // 获取父任务
+      const parentTask = this.findParentTask(task.parentId);
+
+      // 检查父任务类型是否允许添加同级任务
+      if (parentTask && parentTask.type === 'milestone') {
+        this.$message.warning('Milestone类型下不能添加同级任务');
+        return;
+      }
+
+      // 设置对话框参数
+      this.editDialogType = task.type; // 同级任务类型与当前任务相同
+      this.editDialogMode = 'add-sibling';
+      this.editingTask = null;
+      this.parentTask = parentTask;
+
+      // 设置默认日期范围
+      const today = moment().format('YYYY-MM-DD');
+      this.editDialogForm = {
+        startDate: today,
+        endDate: this.editDialogType === 'milestone' ? today : moment().add(7, 'days').format('YYYY-MM-DD')
+      };
+
+      this.editDialogVisible = true;
+    },
+
+    // 显示编辑对话框
+    showEditDialog(task) {
+      if (!task) return;
+      this.editDialogType = task.type || 'task';
+      this.editDialogMode = 'edit';
+      this.editingTask = {
+        ...task,
+        childrenTasks: this.findChildrenTasks(task.id)
+      };
+      this.parentTask = this.findParentTask(task.parentId);
+    },
+
+    // 显示添加同级任务对话框
+    findParentTask(parentId) {
+      if (!parentId) return null;
+      return this.flattenTasks.find(task => task.id === parentId);
+    },
+
+    // 查找子任务
+    findChildrenTasks(parentId) {
+      if (!parentId) return [];
+      return this.flattenTasks.filter(task => task.parentId === parentId);
+    },
+
+    // 刷新表格数据
+    refreshTableData() {
+      // 通知表格组件刷新数据
+      if (this.$refs.customTable) {
+        this.$refs.customTable.refreshData();
+      }
+      // 更新右侧区域宽度
+      this.$nextTick(() => {
+        this.updateRightAreaWidth();
+      });
+    },
   },
-  mounted() {
+    mounted() {
+      // 初始化表格宽度配置
+      this.leftWidth = this.tableWidth || 400;
+
+      // 初始化列配置
+      if (this.columns && Array.isArray(this.columns)) {
+        // 处理列配置
+      }
     // 初始化表格宽度配置
     this.leftWidth = this.tableWidth || 400
 

@@ -62,7 +62,7 @@
                     </div>
                     <i
                       slot="reference"
-                      class="filter-icon"
+                      class="filter-icon "
                       :class="{ 'active': activeFilters['taskName'] }"
                       title="Filter Tasks"
                     ></i>
@@ -94,8 +94,49 @@
                 <span class="header-text">{{ column.label }}</span>
                 <div class="header-actions">
                   <!-- 筛选按钮 -->
+                  <!-- Assignee列使用复选框筛选模式 -->
+                  <el-popover
+                    v-if="column.id === 'assignee'"
+                    placement="bottom"
+                    trigger="click"
+                    :width="280"
+                    @show="onAssigneeFilterShow"
+                  >
+                    <div class="filter-popover">
+                      <el-input
+                        v-model="assigneeFilterSearchText"
+                        placeholder="Search assignees..."
+                        size="mini"
+                        clearable
+                        @input="handleAssigneeFilter"
+                        @clear="clearAssigneeFilter"
+                        prefix-icon="el-icon-search"
+                      />
+                      <div v-if="assigneeOptions.length > 0" class="filter-options">
+                        <div class="filter-option-header">Available Assignees:</div>
+                        <el-checkbox-group v-model="selectedAssignees" @change="handleAssigneeFilterChange">
+                          <div v-for="option in filteredAssigneeOptions" :key="option.value" class="filter-option-item">
+                            <el-checkbox :label="option.value" :disabled="false">
+                              {{ option.label }}
+                            </el-checkbox>
+                          </div>
+                        </el-checkbox-group>
+                      </div>
+                      <div class="filter-actions">
+                        <el-button size="mini" @click="selectAllAssignees">Select All</el-button>
+                        <el-button size="mini" @click="clearAllAssignees">Clear All</el-button>
+                      </div>
+                    </div>
+                    <i
+                      slot="reference"
+                      class="filter-icon"
+                      :class="{ 'active': activeFilters['assignee'] }"
+                      title="Filter Assignees"
+                    ></i>
+                  </el-popover>
+                  <!-- 其他列使用下拉筛选模式 -->
                   <el-dropdown
-                    v-if="hasFilterOptions(column)"
+                    v-else-if="hasFilterOptions(column)"
                     trigger="click"
                     size="mini"
                     placement="bottom-end"
@@ -170,36 +211,19 @@
                     :width="250"
                     @show="onFilterShow('taskName')"
                   >
-                    <div class="filter-popover">
-                      <el-input
-                        v-model="filterSearchText.taskName"
-                        placeholder="Search tasks..."
-                        size="mini"
-                        clearable
-                        @input="handleTaskNameFilter"
-                        @clear="clearTaskNameFilter"
-                        prefix-icon="el-icon-search"
-                      />
-                      <div v-if="taskNameOptions.length > 0" class="filter-options">
-                        <div class="filter-option-header">Available Tasks:</div>
-                        <el-checkbox-group v-model="selectedTaskNames" @change="handleTaskNameFilterChange">
-                          <div v-for="option in filteredTaskNameOptions" :key="option.value" class="filter-option-item">
-                            <el-checkbox :label="option.value" :disabled="false">
-                              {{ option.label }}
-                            </el-checkbox>
-                          </div>
-                        </el-checkbox-group>
-                      </div>
-                      <div class="filter-actions">
-                        <el-button size="mini" @click="selectAllTaskNames">Select All</el-button>
-                        <el-button size="mini" @click="clearAllTaskNames">Clear All</el-button>
-                      </div>
-                    </div>
+                    <filter-popover
+                      :options="taskNameOptions"
+                      v-model="selectedTaskNames"
+                      placeholder="搜索任务..."
+                      options-title="可选任务"
+                      @search="handleTaskNameFilter"
+                      @change="handleTaskNameFilterChange"
+                    />
                     <i
                       slot="reference"
                       class="filter-icon"
                       :class="{ 'active': activeFilters['taskName'] }"
-                      title="Filter Tasks"
+                      title="筛选任务"
                     ></i>
                   </el-popover>
                   <i class="el-icon-sort sort-icon" title="Sortable"></i>
@@ -235,8 +259,49 @@
                 <span class="header-text">{{ column.label }}</span>
                 <div class="header-actions">
                   <!-- 筛选按钮 -->
+                  <!-- Assignee列使用复选框筛选模式 -->
+                  <el-popover
+                    v-if="column.id === 'assignee'"
+                    placement="bottom"
+                    trigger="click"
+                    :width="280"
+                    @show="onAssigneeFilterShow"
+                  >
+                    <div class="filter-popover">
+                      <el-input
+                        v-model="assigneeFilterSearchText"
+                        placeholder="Search assignees..."
+                        size="mini"
+                        clearable
+                        @input="handleAssigneeFilter"
+                        @clear="clearAssigneeFilter"
+                        prefix-icon="el-icon-search"
+                      />
+                      <div v-if="assigneeOptions.length > 0" class="filter-options">
+                        <div class="filter-option-header">Available Assignees:</div>
+                        <el-checkbox-group v-model="selectedAssignees" @change="handleAssigneeFilterChange">
+                          <div v-for="option in filteredAssigneeOptions" :key="option.value" class="filter-option-item">
+                            <el-checkbox :label="option.value" :disabled="false">
+                              {{ option.label }}
+                            </el-checkbox>
+                          </div>
+                        </el-checkbox-group>
+                      </div>
+                      <div class="filter-actions">
+                        <el-button size="mini" @click="selectAllAssignees">Select All</el-button>
+                        <el-button size="mini" @click="clearAllAssignees">Clear All</el-button>
+                      </div>
+                    </div>
+                    <i
+                      slot="reference"
+                      class="filter-icon"
+                      :class="{ 'active': activeFilters['assignee'] }"
+                      title="Filter Assignees"
+                    ></i>
+                  </el-popover>
+                  <!-- 其他列使用下拉筛选模式 -->
                   <el-dropdown
-                    v-if="hasFilterOptions(column)"
+                    v-else-if="hasFilterOptions(column)"
                     trigger="click"
                     size="mini"
                     placement="bottom-end"
@@ -273,14 +338,91 @@
 
             <!-- 操作列 -->
             <div class="table-cell action-cell header-cell" v-if="showActionColumn">
-              <el-button
-                size="mini"
-                type="text"
-                icon="el-icon-setting"
-                @click="$emit('show-column-config')"
-                title="Configure Columns"
-                class="settings-btn"
-              />
+              <div
+                class="action-wrapper"
+                @mouseenter="handleActionMouseEnter(task.id)"
+                @mouseleave="handleActionMouseLeave(task.id)"
+              >
+                <el-popover
+                  v-if="isActionVisible(task.id)"
+                  placement="bottom-end"
+                  trigger="click"
+                  popper-class="task-action-popover"
+                  :visible-arrow="false"
+                >
+                  <div class="task-action-menu">
+                                        <!-- 根据任务类型动态生成菜单 -->
+                    <template v-if="task.type === 'deliverable'">
+                      <div class="task-action-item" @click="handleTaskAction(task, 'add-child')">
+                        <i class="el-icon-circle-plus-outline"></i>
+                        <span>添加子任务</span>
+                      </div>
+                      <div class="task-action-item" @click="handleTaskAction(task, 'add-sibling')">
+                        <i class="el-icon-plus"></i>
+                        <span>添加同级</span>
+                      </div>
+                      <div class="task-action-divider"></div>
+                      <div class="task-action-item" @click="handleTaskAction(task, 'edit')">
+                        <i class="el-icon-edit"></i>
+                        <span>编辑22</span>
+                      </div>
+                      <div class="task-action-item" @click="handleTaskAction(task, 'delete')">
+                        <i class="el-icon-delete"></i>
+                        <span>删除</span>
+                      </div>
+                    </template>
+                    <template v-else-if="task.type === 'task'">
+                      <div class="task-action-item" @click="handleTaskAction(task, 'add-child')">
+                        <i class="el-icon-circle-plus-outline"></i>
+                        <span>添加子任务</span>
+                      </div>
+                      <div class="task-action-item" @click="handleTaskAction(task, 'add-sibling')">
+                        <i class="el-icon-plus"></i>
+                        <span>添加同级</span>
+                      </div>
+                      <div class="task-action-divider"></div>
+                      <div class="task-action-item" @click="handleTaskAction(task, 'edit')">
+                        <i class="el-icon-edit"></i>
+                        <span>编辑</span>
+                      </div>
+                      <div class="task-action-divider"></div>
+                      <div class="task-action-item" @click="handleTaskAction(task, 'delete')">
+                        <i class="el-icon-delete"></i>
+                        <span>删除</span>
+                      </div>
+                    </template>
+                    <template v-else-if="task.type === 'milestone'">
+                      <div class="task-action-item" @click="handleTaskAction(task, 'add-sibling')">
+                        <i class="el-icon-plus"></i>
+                        <span>添加同级</span>
+                      </div>
+                      <div class="task-action-divider"></div>
+                      <div class="task-action-item" @click="handleTaskAction(task, 'edit')">
+                        <i class="el-icon-edit"></i>
+                        <span>编辑</span>
+                      </div>
+                      <div class="task-action-divider"></div>
+                      <div class="task-action-item" @click="handleTaskAction(task, 'delete')">
+                        <i class="el-icon-delete"></i>
+                        <span>删除</span>
+                      </div>
+                    </template>
+                    <template v-else>
+                      <div class="task-action-item" @click="handleTaskAction(task, 'edit')">
+                        <i class="el-icon-edit"></i>
+                        <span>编辑</span>
+                      </div>
+                    </template>
+                  </div>
+                  <el-button
+                    slot="reference"
+                    size="mini"
+                    type="text"
+                    icon="el-icon-more"
+                    class="task-action-btn"
+                  />
+                </el-popover>
+              </div>
             </div>
           </div>
         </template>
@@ -346,34 +488,106 @@
                   </span>
                 </button>
 
-                <!-- 任务名称区域 -->
-                <div class="task-text-area">
-                  <!-- 任务类型图标 -->
-                  <span
-                    v-if="task.type"
-                    class="task-type-icon"
-                    :class="getTaskTypeConfig(task.type)?.iconClass"
-                    :style="{
-                      fontSize: getTaskTypeConfig(task.type)?.iconSize || '14px',
-                      color: getTaskTypeConfig(task.type)?.iconColor || '#666'
-                    }"
-                    :title="getTaskTypeConfig(task.type)?.name"
-                  >
-                    <!-- 如果配置了iconClass，不显示emoji图标 -->
-                    <template v-if="!getTaskTypeConfig(task.type)?.iconClass">
-                      {{ getTaskTypeConfig(task.type)?.icon }}
-                    </template>
-                  </span>
-                  <span class="task-name" :title="task.name">{{ task.name }}</span>
+                                  <!-- 任务名称区域 -->
+                  <div class="task-text-area" @mouseenter="hoveredTaskNameId = task.id" @mouseleave="hoveredTaskNameId = null">
+                    <!-- 任务类型图标 -->
+                    <span
+                      v-if="task.type"
+                      class="task-type-icon"
+                      :class="getTaskTypeConfig(task.type)?.iconClass"
+                      :style="{
+                        fontSize: getTaskTypeConfig(task.type)?.iconSize || '14px',
+                        color: getTaskTypeConfig(task.type)?.iconColor || '#666'
+                      }"
+                      :title="getTaskTypeConfig(task.type)?.name"
+                    >
+                      <!-- 如果配置了iconClass，不显示emoji图标 -->
+                      <template v-if="!getTaskTypeConfig(task.type)?.iconClass">
+                        {{ getTaskTypeConfig(task.type)?.icon }}
+                      </template>
+                    </span>
+                    <span class="task-name" :title="task.name">{{ task.name }}</span>
 
-                  <!-- 子任务数量 -->
-                  <span
-                    v-if="task.children && task.children.length > 0"
-                    class="children-count"
-                  >
-                    ({{ task.children.length }})
-                  </span>
-                </div>
+                    <!-- 子任务数量 -->
+                    <span
+                      v-if="task.children && task.children.length > 0"
+                      class="children-count"
+                    >
+                      ({{ task.children.length }})
+                    </span>
+
+                    <!-- 任务名称列内的编辑图标 -->
+                    <el-dropdown
+                      v-if="hoveredTaskNameId === task.id && hasPermission(task, 'editable')"
+                      trigger="click"
+                      size="mini"
+                      :hide-on-click="true"
+                      placement="bottom-end"
+                      @command="(command) => handleTaskAction({ action: command, task })"
+                      @visible-change="(visible) => handleDropdownVisibleChange(visible, task.id)"
+                    >
+                      <el-button
+                        size="mini"
+                        type="text"
+                        icon="el-icon-more"
+                        class="task-action-btn"
+                        @click.stop="$event.preventDefault()"
+                      />
+                      <el-dropdown-menu
+                        slot="dropdown"
+                        class="task-action-dropdown"
+                      >
+                        <!-- 根据任务类型动态生成菜单 -->
+                        <template v-if="task.type === 'deliverable'">
+                          <el-dropdown-item command="add-child" icon="el-icon-circle-plus-outline">
+                            Add Subtask
+                          </el-dropdown-item>
+                          <el-dropdown-item command="add-sibling" icon="el-icon-plus">
+                            Add Sibling
+                          </el-dropdown-item>
+                          <el-dropdown-item command="edit" icon="el-icon-edit" divided>
+                            Edit
+                          </el-dropdown-item>
+                          <el-dropdown-item command="delete" icon="el-icon-delete" divided>
+                            Delete
+                          </el-dropdown-item>
+                        </template>
+                        <template v-else-if="task.type === 'task'">
+                          <el-dropdown-item command="add-child" icon="el-icon-circle-plus-outline">
+                            Add Subtask
+                          </el-dropdown-item>
+                          <el-dropdown-item command="add-sibling" icon="el-icon-plus">
+                            Add Sibling
+                          </el-dropdown-item>
+                          <el-dropdown-item command="edit" icon="el-icon-edit" divided>
+                            Edit
+                          </el-dropdown-item>
+                          <el-dropdown-item command="delete" icon="el-icon-delete" divided>
+                            Delete
+                          </el-dropdown-item>
+                        </template>
+                        <template v-else-if="task.type === 'milestone'">
+                          <el-dropdown-item command="add-sibling" icon="el-icon-plus">
+                            Add Sibling
+                          </el-dropdown-item>
+                          <el-dropdown-item command="edit" icon="el-icon-edit" divided>
+                            Edit
+                          </el-dropdown-item>
+                          <el-dropdown-item command="delete" icon="el-icon-delete" divided>
+                            Delete
+                          </el-dropdown-item>
+                        </template>
+                        <template v-else>
+                          <el-dropdown-item command="edit" icon="el-icon-edit">
+                            Edit
+                          </el-dropdown-item>
+                          <el-dropdown-item command="delete" icon="el-icon-delete" divided>
+                            Delete
+                          </el-dropdown-item>
+                        </template>
+                      </el-dropdown-menu>
+                    </el-dropdown>
+                  </div>
               </div>
             </div>
           </div>
@@ -449,6 +663,39 @@
                     {{ getTaskStatus(task) }}
                   </span>
 
+                  <!-- Assignee列 -->
+                  <template v-else-if="column.id === 'assignee'">
+                    <div
+                      class="editable-cell"
+                      @mouseenter="handleCellMouseEnter(task.id, 'assignee')"
+                      @mouseleave="handleCellMouseLeave(task.id, 'assignee')"
+                    >
+                      <template>
+                        <el-select
+                          v-model="task.assignee"
+                          class="cell-edit-input assignee-select"
+                          filterable
+                          clearable
+                          placeholder="选择负责人"
+                          @change="(value) => handleCellValueChange(task.id, 'assignee', value)"
+                          :append-to-body="true"
+                          :value="task.assignee || ''"
+                          @blur="handleCellMouseLeave(task.id, 'assignee')"
+                          popper-class="assignee-dropdown"
+                        >
+                          <el-option
+                            v-for="person in assigneeOptions"
+                            :key="person.value"
+                            :label="person.label"
+                            :value="person.value"
+                          >
+                          </el-option>
+                        </el-select>
+                      </template>
+
+                    </div>
+                  </template>
+
                   <!-- 其他列 -->
                   <span v-else>{{ task[column.prop] || '-' }}</span>
                 </template>
@@ -501,15 +748,6 @@
             </div>
           </div>
 
-          <!-- 悬浮编辑按钮 -->
-          <div
-            v-if="hoveredTaskId === task.id && hasPermission(task, 'editable')"
-            class="hover-edit-btn"
-            @click.stop="$emit('edit-task', task)"
-            title="Edit Task"
-          >
-            <i class="el-icon-edit"></i>
-          </div>
           </template>
 
           <!-- 非固定列布局（简化版） -->
@@ -543,7 +781,7 @@
                   </button>
 
                   <!-- 任务名称区域 -->
-                  <div class="task-text-area">
+                  <div class="task-text-area" @mouseenter="hoveredTaskNameId = task.id" @mouseleave="hoveredTaskNameId = null">
                                       <!-- 任务类型图标 -->
                   <span
                     v-if="task.type"
@@ -590,6 +828,73 @@
                     >
                       ({{ task.children.length }})
                     </span>
+
+                    <!-- 任务名称列内的编辑图标 -->
+                    <el-dropdown
+                      v-if="hasPermission(task, 'editable')"
+                      trigger="click"
+                      size="mini"
+                      :hide-on-click="false"
+                      placement="bottom-end"
+                      @command="(command) => handleTaskAction({ action: command, task })"
+                    >
+                      <el-button
+                        size="mini"
+                        type="text"
+                        icon="el-icon-more"
+                        class="task-action-btn"
+                      />
+                      <el-dropdown-menu
+                        slot="dropdown"
+                        class="task-action-dropdown"
+                      >
+                        <!-- 根据任务类型动态生成菜单 -->
+                        <template v-if="task.type === 'deliverable'">
+                          <el-dropdown-item command="add-child" icon="el-icon-circle-plus-outline">
+                            添加子任务
+                          </el-dropdown-item>
+                          <el-dropdown-item command="add-sibling" icon="el-icon-plus">
+                            添加同级
+                          </el-dropdown-item>
+                          <el-dropdown-item command="edit" icon="el-icon-edit" divided>
+                            编辑
+                          </el-dropdown-item>
+                          <el-dropdown-item command="delete" icon="el-icon-delete" divided>
+                            删除
+                          </el-dropdown-item>
+                        </template>
+                        <template v-else-if="task.type === 'task'">
+                          <el-dropdown-item command="add-child" icon="el-icon-circle-plus-outline">
+                            添加子任务
+                          </el-dropdown-item>
+                          <el-dropdown-item command="add-sibling" icon="el-icon-plus">
+                            添加同级
+                          </el-dropdown-item>
+                          <el-dropdown-item command="edit" icon="el-icon-edit" divided>
+                            编辑
+                          </el-dropdown-item>
+                          <el-dropdown-item command="delete" icon="el-icon-delete" divided>
+                            删除
+                          </el-dropdown-item>
+                        </template>
+                        <template v-else-if="task.type === 'milestone'">
+                          <el-dropdown-item command="add-sibling" icon="el-icon-plus">
+                            添加同级
+                          </el-dropdown-item>
+                          <el-dropdown-item command="edit" icon="el-icon-edit" divided>
+                            编辑
+                          </el-dropdown-item>
+                          <el-dropdown-item command="delete" icon="el-icon-delete" divided>
+                            删除
+                          </el-dropdown-item>
+                        </template>
+                        <template v-else>
+                          <el-dropdown-item command="edit" icon="el-icon-edit">
+                            编辑
+                          </el-dropdown-item>
+                        </template>
+                      </el-dropdown-menu>
+                    </el-dropdown>
                   </div>
                 </div>
               </div>
@@ -679,6 +984,39 @@
                       </span>
                     </template>
 
+                    <!-- Assignee列 -->
+                    <template v-else-if="column.id === 'assignee'">
+                      <div
+                        class="editable-cell"
+                        @mouseenter="handleCellMouseEnter(task.id, 'assignee')"
+                        @mouseleave="handleCellMouseLeave(task.id, 'assignee')"
+                      >
+                        <template>
+                          <el-select
+                            v-model="task.assignee"
+                            class="cell-edit-input assignee-select"
+                            filterable
+                            clearable
+                            placeholder="选择负责人"
+                            @change="(value) => handleCellValueChange(task.id, 'assignee', value)"
+                            :append-to-body="true"
+                            :value="task.assignee || ''"
+                            @blur="handleCellMouseLeave(task.id, 'assignee')"
+                            popper-class="assignee-dropdown"
+                          >
+                            <el-option
+                              v-for="person in assigneeOptions"
+                              :key="person.value"
+                              :label="person.label"
+                              :value="person.value"
+                            >
+                            </el-option>
+                          </el-select>
+                        </template>
+
+                      </div>
+                    </template>
+
                     <!-- 其他列 -->
                     <span v-else>{{ task[column.prop] || '-' }}</span>
                   </template>
@@ -687,40 +1025,36 @@
 
               <!-- 操作列 -->
               <div class="table-cell action-cell" v-if="showActionColumn">
-                <el-dropdown trigger="click" size="mini" :append-to-body="true">
-                  <el-button size="mini" type="text" icon="el-icon-more" />
-                  <el-dropdown-menu slot="dropdown">
-                    <!-- 编辑任务 -->
-                    <el-dropdown-item @click.native="$emit('edit-task', task)">
-                      <i class="el-icon-edit"></i> Edit Task
-                    </el-dropdown-item>
-                    <!-- 添加兄弟任务 -->
-                    <el-dropdown-item @click.native="addSiblingTask(task)" divided>
-                      <i class="el-icon-plus"></i> Add Sibling Task
-                    </el-dropdown-item>
-                    <!-- 添加子任务 -->
-                    <el-dropdown-item @click.native="addChildTask(task)">
-                      <i class="el-icon-circle-plus-outline"></i> Add Child Task
-                    </el-dropdown-item>
-                    <!-- 删除任务 -->
-                    <el-dropdown-item @click.native="$emit('delete-task', task)" divided>
-                      <i class="el-icon-delete"></i> Delete Task
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </el-dropdown>
+                <div
+                  class="action-wrapper"
+                  @mouseenter="handleActionMouseEnter(task.id)"
+                  @mouseleave="handleActionMouseLeave(task.id)"
+                >
+                  <el-popover
+                    v-if="isActionVisible(task.id)"
+                    placement="bottom-end"
+                    trigger="click"
+                    popper-class="task-action-popover"
+                    :visible-arrow="false"
+                  >
+                    <task-action-menu
+                      :task="task"
+                      @action="handleTaskAction"
+                    />
+                    <el-button
+                      slot="reference"
+                      size="mini"
+                      type="text"
+                      icon="el-icon-more"
+                      class="task-action-btn"
+                    />
+                  </el-popover>
+                </div>
               </div>
             </div>
           </template>
 
-          <!-- 悬浮编辑按钮 -->
-          <div
-            v-if="hoveredTaskId === task.id && hasPermission(task, 'editable')"
-            class="hover-edit-btn"
-            @click.stop="$emit('edit-task', task)"
-            title="Edit Task"
-          >
-            <i class="el-icon-edit"></i>
-          </div>
+
         </div>
       </div>
     </div>
@@ -732,9 +1066,15 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 import moment from 'moment'
 import Sortable from 'sortablejs'
 import { getTaskTypeConfig } from '@/config/features'
+import TaskActionMenu from './editDialog/TaskActionMenu.vue'
+import FilterPopover from './editDialog/FilterPopover.vue'
 
 export default {
   name: 'CustomGanttTable',
+  components: {
+    TaskActionMenu,
+    FilterPopover
+  },
   props: {
     tasks: {
       type: Array,
@@ -812,6 +1152,9 @@ export default {
       },
       selectedTaskNames: [],
       taskNameOptions: [],
+      // Assignee筛选相关
+      assigneeFilterSearchText: '',
+      selectedAssignees: [],
       filterOptions: {
         status: [
           { label: 'Not Started', value: 'not-started' },
@@ -832,11 +1175,18 @@ export default {
       resizeObserver: null,
       hoveredTaskId: null,
       collapsedTasks: new Set(),
+      editingCells: {}, // 用于跟踪正在编辑的单元格
+      visibleActions: {}, // 用于跟踪显示的操作按钮
     }
   },
   computed: {
     ...mapState(['selectAllState']),
-    ...mapGetters(['isTaskSelected', 'isTaskCollapsed']),
+    ...mapGetters(['isTaskSelected', 'isTaskCollapsed', 'getAssigneeOptions']),
+
+    // 人员选项数据
+    assigneeOptions() {
+      return this.getAssigneeOptions || []
+    },
 
     // 过滤动态列，排除checkbox和taskName
     visibleColumns() {
@@ -917,6 +1267,18 @@ export default {
       return this.taskNameOptions.filter(option =>
         option.label.toLowerCase().includes(searchText)
       )
+    },
+
+    // 过滤后的Assignee选项
+    filteredAssigneeOptions() {
+      if (!this.assigneeFilterSearchText) {
+        return this.assigneeOptions
+      }
+      const searchText = this.assigneeFilterSearchText.toLowerCase()
+      return this.assigneeOptions.filter(option =>
+        option.label.toLowerCase().includes(searchText) ||
+        option.value.toLowerCase().includes(searchText)
+      )
     }
   },
   watch: {
@@ -976,10 +1338,8 @@ export default {
 
     // 获取任务状态
     getTaskStatus(task) {
-      if (!task.progress) return 'Not Started'
-      if (task.progress >= 100) return 'Completed'
-      if (task.progress > 0) return 'In Progress'
-      return 'Not Started'
+
+      return task.status
     },
 
     // 获取状态样式类
@@ -1108,7 +1468,7 @@ export default {
 
       // 根据列类型判断是否支持筛选
       // 注意：taskName 已改为使用复选框模式，不再支持下拉筛选
-      const filterableColumns = ['progress', 'status', 'startDate', 'endDate', 'planStartDate', 'planEndDate']
+      const filterableColumns = ['progress', 'status', 'assignee', 'startDate', 'endDate', 'planStartDate', 'planEndDate']
       return filterableColumns.includes(column.id)
     },
 
@@ -1121,6 +1481,16 @@ export default {
           return this.filterOptions.status
         case 'progress':
           return this.filterOptions.progress
+        case 'assignee':
+          // 获取所有任务中的不重复负责人
+          const assignees = this.tasks
+            .map(task => task.assignee)
+            .filter(assignee => assignee)
+          const uniqueAssignees = [...new Set(assignees)]
+          return uniqueAssignees.map(assignee => ({
+            label: assignee,
+            value: assignee
+          }))
         case 'taskName':
           // 任务名称筛选已改为使用复选框模式，不再使用下拉选项
           console.warn('任务名称筛选不应使用 getFilterOptions 方法')
@@ -1144,148 +1514,209 @@ export default {
       }
     },
 
-         // 处理筛选
-     handleFilter(columnId, value) {
-       // 特殊处理任务名称筛选，避免覆盖复选框多选逻辑
-       if (columnId === 'taskName') {
-         console.error('[表格筛选错误] 任务名称筛选应使用复选框模式，不应调用 handleFilter 方法。请检查模板中是否还有遗留的下拉筛选代码。')
-         // 直接返回，避免处理错误的筛选类型
-         return
-       }
+    // 处理筛选
+    handleFilter(columnId, value) {
+      // 特殊处理任务名称和Assignee筛选，避免覆盖复选框多选逻辑
+      if (columnId === 'taskName') {
+        console.error('[表格筛选错误] 任务名称筛选应使用复选框模式，不应调用 handleFilter 方法。请检查模板中是否还有遗留的下拉筛选代码。')
+        return
+      }
+      if (columnId === 'assignee') {
+        console.error('[表格筛选错误] Assignee筛选应使用复选框模式，不应调用 handleFilter 方法。请检查模板中是否还有遗留的下拉筛选代码。')
+        return
+      }
 
-       if (!value || value === '') {
-         // 清除筛选
-         this.$delete(this.activeFilters, columnId)
-       } else {
-         // 设置筛选值
-         this.$set(this.activeFilters, columnId, value)
-       }
+      if (!value || value === '') {
+        // 清除筛选
+        this.$delete(this.activeFilters, columnId)
+      } else {
+        // 设置筛选值
+        this.$set(this.activeFilters, columnId, value)
+      }
 
-       // 触发筛选事件，将筛选条件传递给父组件
-       this.$emit('filter-change', {
-         column: columnId,
-         value: value,
-         activeFilters: { ...this.activeFilters }
-       })
-     },
+      // 触发筛选事件，将筛选条件传递给父组件
+      this.$emit('filter-change', {
+        column: columnId,
+        value: value,
+        activeFilters: { ...this.activeFilters }
+      })
+    },
 
-     // 获取任务字段值用于筛选
-     getTaskValueForFilter(task, columnId) {
-       switch (columnId) {
-         case 'taskName':
-           return task.name
-         case 'status':
-           return this.getTaskStatus(task).toLowerCase().replace(' ', '-')
-         case 'progress':
-           return task.progress || 0
-         case 'startDate':
-         case 'endDate':
-         case 'planStartDate':
-         case 'planEndDate':
-           return task[columnId] ? moment(task[columnId]).format('YYYY-MM') : null
-         default:
-           return task[columnId]
-       }
-     },
+    // 获取任务字段值用于筛选
+    getTaskValueForFilter(task, columnId) {
+      switch (columnId) {
+        case 'taskName':
+          return task.name
+        case 'status':
+          return this.getTaskStatus(task).toLowerCase().replace(' ', '-')
+        case 'progress':
+          return task.progress || 0
+        case 'assignee':
+          return task.assignee
+        case 'startDate':
+        case 'endDate':
+        case 'planStartDate':
+        case 'planEndDate':
+          return task[columnId] ? moment(task[columnId]).format('YYYY-MM') : null
+        default:
+          return task[columnId]
+      }
+    },
 
-     // 判断值是否匹配筛选条件
-     matchesFilter(columnId, taskValue, filterValue) {
-       // 防止 undefined/null 导致的错误
-       if (filterValue === undefined || filterValue === null) {
-         return true
-       }
+    // 判断值是否匹配筛选条件
+    matchesFilter(columnId, taskValue, filterValue) {
+      // 防止 undefined/null 导致的错误
+      if (filterValue === undefined || filterValue === null) {
+        return true
+      }
 
-       switch (columnId) {
-         case 'taskName':
-           // 统一处理任务名称筛选，支持数组和字符串两种格式
-           if (Array.isArray(filterValue)) {
-             // 多选模式：检查任务名称是否在选中列表中
-             return filterValue.length === 0 || filterValue.includes(taskValue)
-           } else if (typeof filterValue === 'string' && filterValue.trim() !== '') {
-             // 搜索模式：模糊匹配任务名称
+      switch (columnId) {
+        case 'taskName':
+          // 统一处理任务名称筛选，支持数组和字符串两种格式
+          if (Array.isArray(filterValue)) {
+            // 多选模式：检查任务名称是否在选中列表中
+            return filterValue.length === 0 || filterValue.includes(taskValue)
+          } else if (typeof filterValue === 'string' && filterValue.trim() !== '') {
+            // 搜索模式：模糊匹配任务名称
 
-             return taskValue && typeof taskValue === 'string' &&
-                    taskValue.toLowerCase().includes(filterValue.toLowerCase())
-           }
-           return true
-         case 'status':
-           return taskValue === filterValue
-         case 'progress':
-           const progress = parseInt(taskValue) || 0
-           switch (filterValue) {
-             case '0': return progress === 0
-             case '1-25': return progress >= 1 && progress <= 25
-             case '26-50': return progress >= 26 && progress <= 50
-             case '51-75': return progress >= 51 && progress <= 75
-             case '76-99': return progress >= 76 && progress <= 99
-             case '100': return progress === 100
-             default: return true
-           }
-         case 'startDate':
-         case 'endDate':
-         case 'planStartDate':
-         case 'planEndDate':
-           return taskValue === filterValue
-         default:
-           return true
-       }
-     },
+            return taskValue && typeof taskValue === 'string' &&
+                   taskValue.toLowerCase().includes(filterValue.toLowerCase())
+          }
+          return true
+        case 'status':
+          return taskValue === filterValue
+        case 'assignee':
+        if (Array.isArray(filterValue)) {
+            // 多选模式：检查任务名称是否在选中列表中
+            return filterValue.length === 0 || filterValue.includes(taskValue)
+          } else if (typeof filterValue === 'string' && filterValue.trim() !== '') {
+            // 搜索模式：模糊匹配任务名称
 
-     // 任务名称筛选相关方法
-     onFilterShow(columnId) {
-       if (columnId === 'taskName') {
-         this.updateTaskNameOptions()
-       }
-     },
+            return taskValue && typeof taskValue === 'string' &&
+                   taskValue.toLowerCase().includes(filterValue.toLowerCase())
+          }
+          return true
+        case 'progress':
+          const progress = parseInt(taskValue) || 0
+          switch (filterValue) {
+            case '0': return progress === 0
+            case '1-25': return progress >= 1 && progress <= 25
+            case '26-50': return progress >= 26 && progress <= 50
+            case '51-75': return progress >= 51 && progress <= 75
+            case '76-99': return progress >= 76 && progress <= 99
+            case '100': return progress === 100
+            default: return true
+          }
+        case 'startDate':
+        case 'endDate':
+        case 'planStartDate':
+        case 'planEndDate':
+          return taskValue === filterValue
+        default:
+          return true
+      }
+    },
 
-     updateTaskNameOptions() {
-       const uniqueNames = [...new Set(this.tasks.map(task => task.name).filter(Boolean))]
-       this.taskNameOptions = uniqueNames.map(name => ({
-         label: name,
-         value: name
-       }))
-     },
+    // 任务名称筛选相关方法
+    onFilterShow(columnId) {
+      if (columnId === 'taskName') {
+        this.updateTaskNameOptions()
+      }
+    },
 
-     handleTaskNameFilter() {
-       // 实时搜索，无需额外处理
-     },
+    updateTaskNameOptions() {
+      const uniqueNames = [...new Set(this.tasks.map(task => task.name).filter(Boolean))]
+      this.taskNameOptions = uniqueNames.map(name => ({
+        label: name,
+        value: name
+      }))
+    },
 
-     clearTaskNameFilter() {
-       this.filterSearchText.taskName = ''
-       this.selectedTaskNames = []
-       this.updateTaskNameFilter()
-     },
+    handleTaskNameFilter() {
+      // 实时搜索，无需额外处理
+    },
 
-     handleTaskNameFilterChange() {
-       this.updateTaskNameFilter()
-     },
+    clearTaskNameFilter() {
+      this.filterSearchText.taskName = ''
+      this.selectedTaskNames = []
+      this.updateTaskNameFilter()
+    },
 
-     updateTaskNameFilter() {
-       // 更新活跃筛选状态 - 确保数组类型的一致性
-       if (this.selectedTaskNames.length > 0) {
-         // 确保传入的是数组的副本，避免引用问题
-         this.$set(this.activeFilters, 'taskName', [...this.selectedTaskNames])
-       } else {
-         this.$delete(this.activeFilters, 'taskName')
-       }
+    handleTaskNameFilterChange() {
+      this.updateTaskNameFilter()
+    },
 
-       // 触发筛选变化事件
-       this.$emit('filter-change', {
-         column: 'taskName',
-         value: this.selectedTaskNames.length > 0 ? [...this.selectedTaskNames] : null,
-         activeFilters: { ...this.activeFilters }
-       })
-     },
+    updateTaskNameFilter() {
+      // 更新活跃筛选状态 - 确保数组类型的一致性
+      if (this.selectedTaskNames.length > 0) {
+        // 确保传入的是数组的副本，避免引用问题
+        this.$set(this.activeFilters, 'taskName', [...this.selectedTaskNames])
+      } else {
+        this.$delete(this.activeFilters, 'taskName')
+      }
 
-     selectAllTaskNames() {
-       this.selectedTaskNames = this.filteredTaskNameOptions.map(option => option.value)
-       this.updateTaskNameFilter()
-     },
+      // 触发筛选变化事件
+      this.$emit('filter-change', {
+        column: 'taskName',
+        value: this.selectedTaskNames.length > 0 ? [...this.selectedTaskNames] : null,
+        activeFilters: { ...this.activeFilters }
+      })
+    },
 
-     clearAllTaskNames() {
-       this.selectedTaskNames = []
-       this.updateTaskNameFilter()
-     },
+    selectAllTaskNames() {
+      this.selectedTaskNames = this.filteredTaskNameOptions.map(option => option.value)
+      this.updateTaskNameFilter()
+    },
+
+    clearAllTaskNames() {
+      this.selectedTaskNames = []
+      this.updateTaskNameFilter()
+    },
+
+    // Assignee筛选相关方法
+    onAssigneeFilterShow() {
+      // 当筛选弹窗显示时，无需特殊处理（assigneeOptions由store提供）
+    },
+
+    handleAssigneeFilter() {
+      // 实时搜索，无需额外处理
+    },
+
+    clearAssigneeFilter() {
+      this.assigneeFilterSearchText = ''
+      this.selectedAssignees = []
+      this.updateAssigneeFilter()
+    },
+
+    handleAssigneeFilterChange() {
+      this.updateAssigneeFilter()
+    },
+
+    updateAssigneeFilter() {
+      // 更新活跃筛选状态
+      if (this.selectedAssignees.length > 0) {
+        this.$set(this.activeFilters, 'assignee', [...this.selectedAssignees])
+      } else {
+        this.$delete(this.activeFilters, 'assignee')
+      }
+
+      // 触发筛选变化事件
+      this.$emit('filter-change', {
+        column: 'assignee',
+        value: this.selectedAssignees.length > 0 ? [...this.selectedAssignees] : null,
+        activeFilters: { ...this.activeFilters }
+      })
+    },
+
+    selectAllAssignees() {
+      this.selectedAssignees = this.filteredAssigneeOptions.map(option => option.value)
+      this.updateAssigneeFilter()
+    },
+
+    clearAllAssignees() {
+      this.selectedAssignees = []
+      this.updateAssigneeFilter()
+    },
 
     // 添加同级任务
     addSiblingTask(task) {
@@ -1423,39 +1854,43 @@ export default {
     },
 
     // ===== 列宽拖拽调整功能 =====
-    // 开始列宽调整
+    // 开始列宽调整（统一处理所有列）
     startColumnResize(column, event) {
-      if (!this.allowColumnResize || !column) return
-
-      event.preventDefault()
-      event.stopPropagation()
+      if (!this.allowColumnResize) return
 
       this.isResizingColumn = true
       this.resizingColumn = column
       this.resizeStartX = event.clientX
-      this.resizeStartWidth = column.width || column.minWidth || 100
+      this.resizeStartWidth = column ? column.width || column.minWidth || 100 : this.taskNameColumnWidth
 
-      // 添加全局鼠标事件监听
+      // 添加事件监听
       document.addEventListener('mousemove', this.doColumnResize)
       document.addEventListener('mouseup', this.stopColumnResize)
 
-      // 防止文本选择
+      // 设置样式
       document.body.style.userSelect = 'none'
       document.body.style.cursor = 'col-resize'
     },
 
     // 执行列宽调整
     doColumnResize(event) {
-      if (!this.isResizingColumn || !this.resizingColumn) return
+      if (!this.isResizingColumn) return
 
       const deltaX = event.clientX - this.resizeStartX
-      const newWidth = Math.max(this.resizeStartWidth + deltaX, 50) // 最小宽度50px
+      let newWidth = Math.max(100, this.resizeStartWidth + deltaX)
 
-      // 实时更新列宽
-      this.resizingColumn.width = newWidth
-
-      // 实时更新表格布局
-      this.initTableLayout()
+      if (this.resizingColumn) {
+        // 动态列调整
+        this.$set(this.resizingColumn, 'width', newWidth)
+        this.$emit('column-resize', {
+          columnId: this.resizingColumn.id,
+          newWidth: newWidth
+        })
+      } else {
+        // 任务名称列调整
+        this.taskNameColumnWidth = newWidth
+        this.updateTaskNameColumnWidth()
+      }
     },
 
     // 结束列宽调整
@@ -1464,7 +1899,6 @@ export default {
 
       // 清理状态
       this.isResizingColumn = false
-      const column = this.resizingColumn
       this.resizingColumn = null
 
       // 移除事件监听
@@ -1476,10 +1910,15 @@ export default {
       document.body.style.cursor = ''
 
       // 发射列宽变化事件
-      if (column) {
+      if (this.resizingColumn) {
         this.$emit('column-resize', {
-          columnId: column.id,
-          newWidth: column.width || column.minWidth || 100
+          columnId: this.resizingColumn.id,
+          newWidth: this.resizingColumn.width
+        })
+      } else {
+        this.$emit('column-resize', {
+          columnId: 'taskName',
+          newWidth: this.taskNameColumnWidth
         })
       }
     },
@@ -1681,7 +2120,7 @@ export default {
       }
 
       // 定义可编辑的字段
-      const editableFields = ['name', 'progress', 'startDate', 'endDate', 'planStartDate', 'planEndDate', 'status']
+      const editableFields = ['name', 'progress', 'startDate', 'endDate', 'planStartDate', 'planEndDate', 'status', 'assignee']
       return editableFields.includes(field)
     },
 
@@ -1700,6 +2139,10 @@ export default {
             // 状态字段验证，允许的状态值
             const validStatuses = ['Not Started', 'In Progress', 'Completed', 'On Hold']
             return validStatuses.includes(value) ? value : 'Not Started'
+          case 'assignee':
+            // Assignee字段验证，确保是有效的人员选项
+            const validAssignees = this.assigneeOptions.map(option => option.value)
+            return validAssignees.includes(value) ? value : ''
           case 'startDate':
           case 'endDate':
           case 'planStartDate':
@@ -1725,6 +2168,8 @@ export default {
           return value || 0
         case 'status':
           return this.getTaskStatus(task)
+        case 'assignee':
+          return value || ''
         case 'startDate':
         case 'endDate':
         case 'planStartDate':
@@ -1780,1131 +2225,168 @@ export default {
 
       const duration = endDate.diff(startDate, 'days') + 1 // 包含首尾日期
       return `${duration} Days`
-    }
-  },
-  mounted() {
-    // 发送表格挂载事件给父组件
-    this.$emit('table-mounted')
+    },
 
-    // 初始化任务名称选项
-    this.updateTaskNameOptions()
 
-    // 清理可能存在的旧筛选数据，确保任务名称筛选使用正确的数据类型
-    this.cleanupFilters()
 
-    // 初始化表格布局和滚动同步
-    this.initTableLayout()
+    // 处理单元格值变化
+    handleCellValueChange(taskId, field, value) {
+      // 触发值变化事件
+      this.$emit('cell-value-change', {
+        taskId: taskId,
+        field: field,
+        newValue: value,
+        oldValue: this.tasks.find(t => t.id === taskId)?.[field]
+      })
+    },
 
-    // 初始化滚动事件监听
-    if (this.$refs.tableBody) {
-      this.$refs.tableBody.addEventListener('scroll', this.handleScroll)
-    }
-  },
+    handleDropdownVisibleChange(visible) {
+      // Add any additional logic you want to execute when dropdown is visible
+      console.log('Dropdown visible:', visible)
+    },
 
-  beforeDestroy() {
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect()
-    }
+    // 获取负责人名称
+    getAssigneeName(assigneeValue) {
+      const assignee = this.assigneeOptions.find(option => option.value === assigneeValue)
+      return assignee ? assignee.label : ''
+    },
+    // 处理单元格鼠标进入
+    handleCellMouseEnter(taskId, field) {
+      this.$set(this.editingCells, `${taskId}-${field}`, true)
+    },
+    // 处理单元格鼠标离开
+    handleCellMouseLeave(taskId, field) {
+      this.$set(this.editingCells, `${taskId}-${field}`, false)
+    },
+    // 判断单元格是否正在编辑
+    isEditing(taskId, field) {
+      return this.editingCells[`${taskId}-${field}`] === true
+    },
+    // 处理操作按钮鼠标进入
+    handleActionMouseEnter(taskId) {
+      this.$set(this.visibleActions, taskId, true)
+    },
+    // 处理操作按钮鼠标离开
+    handleActionMouseLeave(taskId) {
+      this.$set(this.visibleActions, taskId, false)
+    },
+    // 处理dropdown可见性变化
+    handleDropdownVisibleChange(visible, taskId) {
+      console.log('Dropdown visible change:', visible, taskId);
+      // 当dropdown显示时，保持hover状态
+      if (visible) {
+        this.hoveredTaskNameId = taskId;
+      }
+    },
+    // 判断操作按钮是否可见
+    isActionVisible(taskId) {
+      return this.visibleActions[taskId] === true
+    },
 
-    // 清理滚动事件监听器
-    if (this.$refs.tableBody) {
-      this.$refs.tableBody.removeEventListener('scroll', this.handleScroll)
-    }
+    // 刷新表格数据
+    refreshData() {
+      // 强制更新表格数据
+      this.$forceUpdate();
+      // 重新计算虚拟滚动
+      this.$nextTick(() => {
+        if (this.$refs.tableBody) {
+          this.handleScroll({ target: this.$refs.tableBody });
+        }
+      });
+    },
 
-    // 清理列宽调整事件监听器
-    if (this.isResizingColumn) {
-      document.removeEventListener('mousemove', this.doColumnResize)
-      document.removeEventListener('mouseup', this.stopColumnResize)
-      document.removeEventListener('mousemove', this.doTaskNameColumnResize)
-      document.removeEventListener('mouseup', this.stopTaskNameColumnResize)
-      document.body.style.userSelect = ''
-      document.body.style.cursor = ''
-    }
+    // 获取任务类型图标
+    getTaskTypeIcon(type) {
+      switch (type) {
+        case 'milestone':
+          return 'el-icon-star-on';
+        case 'deliverable':
+          return 'el-icon-goods';
+        default:
+          return 'el-icon-document';
+      }
+    },
 
-    // 清理编辑状态
-    this.cancelCellEdit()
+    // 判断是否可以添加子任务
+    canAddChild(task) {
+      // milestone 不能添加子任务
+      if (task.type === 'milestone') return false;
+      // deliverable 只能添加 task 类型的子任务
+      if (task.type === 'deliverable') return true;
+      // task 可以添加任何类型的子任务
+      return true;
+    },
+
+    // 处理任务操作
+    handleTaskAction(payload) {
+      // 统一处理不同来源的参数格式
+      let task, action;
+
+      // 处理直接传入的 action 和 task
+      if (arguments.length === 2) {
+        action = arguments[0];
+        task = arguments[1];
+      }
+      // 处理对象格式的 payload
+      else if (payload && typeof payload === 'object') {
+        if (payload.task && payload.action) {
+          task = payload.task;
+          action = payload.action;
+        } else if (payload.command && payload.task) {
+          // 兼容旧的参数格式
+          task = payload.task;
+          action = payload.command;
+        }
+      }
+
+      // 参数验证
+      if (!task || !action) {
+        console.warn('处理任务操作: 无效的参数', payload);
+        return;
+      }
+
+      console.log('处理任务操作:', action, task);
+
+      switch (action) {
+        case 'edit':
+          this.$emit('edit-task', task);
+          break;
+        case 'add-sibling':
+          // 检查父任务是否允许添加同级任务
+          const parentTask = this.findParentTask(task.parentId);
+          if (parentTask && parentTask.type === 'milestone') {
+            this.$message.warning('里程碑类型下不能添加同级任务');
+            return;
+          }
+          this.$emit('add-sibling-task', task);
+          break;
+        case 'add-child':
+          // 检查是否可以添加子任务
+          if (task.type === 'milestone') {
+            this.$message.warning('里程碑类型不能添加子任务');
+            return;
+          }
+          this.$emit('add-child-task', task);
+          break;
+        case 'delete':
+          this.$confirm('确定要删除此任务吗？此操作将同时删除所有子任务。', '确认', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            this.$emit('delete-task', task);
+          }).catch(() => {});
+          break;
+        default:
+          console.warn('未知的任务操作:', action);
+      }
+    },
+
+    // 查找父任务
+    findParentTask(parentId) {
+      if (!parentId) return null;
+      return this.data.find(task => task.id === parentId);
+    },
   }
 }
 </script>
-
-<style scoped>
-/* ===== 表格容器 ===== */
-.custom-gantt-table {
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  background: #ffffff;
-  border-right: 1px solid #e1e8ed;
-  display: block;
-}
-
-.table-body {
-  overflow: auto;
-  width: 100%;
-  position: relative;
-  background: #ffffff;
-}
-
-/* ===== 表头样式 ===== */
-.table-header-row {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e1e8ed;
-  display: flex;
-  height: 62px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #374151;
-  /* DHTMLX风格：浅灰色背景，深灰色文字，与右侧甘特图时间轴高度一致 */
-}
-
-.table-cell {
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  border-right: 1px solid #f0f3f6;
-  border-bottom: 1px solid #eee;
-  background: inherit;
-  box-sizing: border-box;
-  min-height: 62px;
-  height: 62px;
-  /* 表头单元格高度与表头行保持一致 */
-}
-
-/* 数据行中的单元格需要单独设置高度 */
-.data-row .table-cell {
-  min-height: 28px; /* 压缩行高 */
-  height: 28px; /* 压缩行高 */
-  /* 数据行单元格高度与数据行对齐 */
-}
-
-.fixed-cell {
-  background: #f8f9fa;
-  z-index: 10;
-  /* 固定列保持表头背景色 */
-}
-
-.header-text {
-  flex: 1;
-  font-weight: 600;
-  color: #374151;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.header-actions {
-  margin-left: 8px;
-  display: flex;
-  gap: 4px;
-  opacity: 1; /* 确保始终显示 */
-}
-
-.header-cell:hover .header-actions {
-  opacity: 1;
-}
-
-.sort-icon,
-.drag-handle,
-.filter-icon {
-  color: #9ca3af;
-  cursor: pointer;
-  font-size: 14px;
-  transition: color 0.2s ease;
-  padding: 2px 4px;
-  border-radius: 3px;
-  display: inline-block;
-}
-
-.sort-icon:hover,
-.drag-handle:hover,
-.filter-icon:hover {
-  color: #4a90e2;
-  background: rgba(74, 144, 226, 0.1);
-}
-
-/* ===== 筛选功能样式 ===== */
-.filter-icon {
-  position: relative;
-  cursor: pointer;
-  color: #9ca3af;
-  font-size: 14px;
-  transition: color 0.2s ease;
-  padding: 2px 4px;
-  border-radius: 3px;
-  display: inline-block;
-}
-
-/* 如果Element UI图标没有正确加载，使用备用方案 */
-.filter-icon:before {
-  content: "🔍"; /* Unicode筛选图标作为备用 */
-  font-size: 12px;
-}
-
-/* 当Element UI图标正确加载时，隐藏备用图标 */
-.el-icon-filter:before {
-  content: "";
-}
-
-.filter-icon:hover {
-  color: #4a90e2;
-}
-
-.filter-icon.active {
-  color: #4a90e2 !important;
-  background: rgba(74, 144, 226, 0.1) !important;
-}
-
-.filter-icon.active::after {
-  content: '';
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 6px;
-  height: 6px;
-  background: #f56c6c;
-  border-radius: 50%;
-  border: 1px solid #fff;
-}
-
-/* 筛选下拉菜单样式 */
-.el-dropdown-menu {
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.el-dropdown-menu__item {
-  font-size: 12px;
-  padding: 8px 16px;
-}
-
-/* ===== 表格内容区域 ===== */
-.table-content {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  overflow-x: hidden;
-}
-
-.table-row {
-  position: absolute;
-  width: 100%;
-  display: flex;
-  border-bottom: 1px solid #f0f3f6;
-  transition: background-color 0.15s ease;
-  cursor: pointer;
-  /* 确保与甘特图节点对齐 - 精确匹配甘特图行高 */
-  height: 28px; /* 压缩行高 */
-  line-height: 28px; /* 压缩行高 */
-  box-sizing: border-box;
-  /* 添加对齐基线 */
-  align-items: center;
-}
-
-.data-row {
-  background: #ffffff;
-  min-height: 28px; /* 压缩行高 */
-  height: 28px; /* 压缩行高 */
-  /* 确保行高一致，与甘特图节点完全对齐 */
-}
-
-/* 行选中状态 - 优化视觉效果，移除边框避免被覆盖 */
-.table-row.highlighted {
-  position: relative;
-  z-index: 50;
-  /* 移除border，使用背景色和伪元素实现高亮效果 */
-}
-
-.table-row.highlighted::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 999;
-  /* 确保高亮背景在最顶层，避免被其他元素覆盖 */
-}
-.table-row.highlighted .all-columns-content{
-  background: linear-gradient(90deg, rgba(74, 144, 226, 0.12) 0%, rgba(74, 144, 226, 0.08) 100%);
-
-}
-
-.table-row.highlighted::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-
-  pointer-events: none;
-  /* 使用伪元素实现左侧指示条 */
-}
-
-/* 行悬停效果 */
-.table-row:hover {
-  background: #f8f9fa;
-}
-
-.table-row.highlighted:hover {
-  background: rgba(74, 144, 226, 0.18) !important;
-}
-
-.data-row.even-row {
-  background: #ffffff;
-}
-
-.data-row.odd-row {
-  background: #fafbfc;
-  /* 轻微的斑马条纹效果 */
-}
-
-.data-row.parent-row {
-  background: #f8f9fa;
-  font-weight: 600;
-  border-bottom: 1px solid #e1e8ed;
-  /* 父节点使用更深的背景色 */
-}
-
-.data-row.parent-row:hover {
-  background: #f1f3f4;
-}
-
-/* ===== 任务名称列优化 - 自适应宽度 ===== */
-.task-name-cell {
-  /* 样式在内联style中定义，这里保留基础样式 */
-}
-
-.task-name-content {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  gap: 6px;
-  height: 100%;
-  justify-content: space-between;
-  /* 确保内容垂直居中，任务文本和操作按钮分别在两端 */
-}
-
-.collapse-btn {
-  background: none;
-  border: none;
-  padding: 2px 4px;
-  cursor: pointer;
-  color: #6b7280;
-  border-radius: 2px;
-  transition: all 0.15s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-}
-
-.collapse-btn:hover {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-.collapse-icon {
-  font-size: 10px;
-  transition: transform 0.15s ease;
-}
-
-.collapse-btn.collapsed .collapse-icon {
-  transform: rotate(0deg);
-}
-
-.task-name {
-  font-weight: 500;
-  color: #374151;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 13px;
-  line-height: 1.2;
-  min-width: 0;
-  flex: 1;
-  /* 确保文本能够正确省略 */
-}
-
-.children-count {
-  color: #9ca3af;
-  font-size: 11px;
-  font-weight: 400;
-  background: #f3f4f6;
-  padding: 1px 6px;
-  border-radius: 10px;
-}
-
-/* ===== 复选框列 ===== */
-.checkbox-cell {
-  justify-content: center;
-}
-
-/* Element UI复选框样式重写 */
-.checkbox-cell .el-checkbox__input.is-checked .el-checkbox__inner {
-  background-color: #4a90e2;
-  border-color: #4a90e2;
-  /* DHTMLX蓝色主题 */
-}
-
-.checkbox-cell .el-checkbox__inner:hover {
-  border-color: #4a90e2;
-}
-
-/* ===== 操作列 ===== */
-.action-cell {
-  justify-content: center;
-}
-
-.settings-btn {
-  color: #6b7280 !important;
-  font-size: 16px !important;
-  padding: 4px !important;
-  border: none !important;
-  background: none !important;
-}
-
-.settings-btn:hover {
-  color: #4a90e2 !important;
-  background: rgba(74, 144, 226, 0.1) !important;
-}
-
-/* ===== 筛选图标样式 ===== */
-.filter-icon {
-  margin-left: 4px;
-  cursor: pointer;
-  color: #9ca3af;
-  transition: color 0.2s ease;
-}
-
-.filter-icon:hover {
-  color: #4a90e2;
-}
-
-.filter-icon.active {
-  color: #4a90e2;
-  font-weight: bold;
-}
-
-/* ===== 表头操作按钮区域 ===== */
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* ===== 进度条样式 ===== */
-.progress-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-
-.progress-bar {
-  flex: 1;
-  height: 6px;
-  background: #f3f4f6;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: #4a90e2;
-  border-radius: 3px;
-  transition: width 0.3s ease;
-  /* DHTMLX蓝色进度条 */
-}
-
-.progress-text {
-  font-size: 11px;
-  color: #6b7280;
-  font-weight: 500;
-  min-width: 35px;
-  text-align: right;
-}
-
-/* ===== 状态标签 ===== */
-.status-badge {
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  text-align: center;
-  white-space: nowrap;
-}
-
-/* ===== 权限控制样式 ===== */
-.permission-hint {
-  color: #f56c6c;
-  font-size: 10px;
-  margin-left: 4px;
-  font-style: italic;
-  /* 权限提示样式 */
-}
-
-.status-badge.not-started {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-.status-badge.in-progress {
-  background: rgba(74, 144, 226, 0.1);
-  color: #4a90e2;
-}
-
-.status-badge.completed {
-  background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
-}
-
-.status-badge.overdue {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-}
-
-/* ===== 日期文本样式 ===== */
-.date-text {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.date-text.plan-date {
-  color: #4a90e2;
-  font-style: italic;
-}
-
-/* ===== 表格布局 - 固定列布局 ===== */
-.table-header-row,
-.table-row {
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-/* 修复固定列模式下表头宽度计算 */
-.table-header-row {
-  background: #f8fafc;
-  border-bottom: 1px solid #e1e8ed;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  height: 62px;
-}
-
-/* 根据固定列配置动态调整表头宽度 */
-.custom-gantt-table.fixed-columns .table-header-row {
-  /* 固定列模式下使用flex布局，让各部分自动计算宽度 */
-  display: flex;
-  width: 100%;
-  min-width: fit-content;
-}
-
-.custom-gantt-table:not(.fixed-columns) .table-header-row {
-  /* 非固定列模式下使用100%宽度 */
-  width: 100%;
-  min-width: 100%;
-}
-
-.table-row {
-  width: 100%;
-}
-
-.table-row {
-  border-bottom: 1px solid #f0f0f0;
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: 28px; /* 修复表格行高度 */
-}
-
-/* ===== 固定列布局 ===== */
-.fixed-left-columns {
-  display: flex;
-  position: sticky;
-  left: 0;
-  z-index: 5;
-  background: #f8f9fa;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-  /* 固定左侧列总宽度：checkbox(50) + taskName(200) = 250px */
-  width: 250px;
-  min-width: 250px;
-  flex-shrink: 0;
-}
-
-.scrollable-columns-header,
-.scrollable-columns {
-  display: flex;
-  overflow: hidden;
-  flex-shrink: 0;
-  /* 宽度、最小宽度、最大宽度都由JavaScript动态设置，确保完全一致 */
-  position: relative;
-}
-
-.fixed-right-columns {
-  display: none;
-  position: sticky;
-  right: 0;
-  z-index: 5;
-  background: #f8f9fa;
-  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
-  width: 60px;
-  min-width: 60px;
-  flex-shrink: 0;
-}
-
-/* ===== 表格单元格 ===== */
-.table-cell {
-  padding: 8px 12px;
-  border-right: 1px solid #f0f0f0;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.header-cell {
-  height: 100%;
-  font-weight: 600;
-  background: #f8fafc;
-}
-
-.fixed-cell {
-  background: #f8f9fa !important;
-}
-
-/* ===== 固定列宽度 ===== */
-.checkbox-cell.fixed-cell {
-  width: 50px;
-  min-width: 50px;
-  max-width: 50px;
-  flex: 0 0 50px;
-}
-
-.task-name-cell.fixed-cell {
-  width: 200px;
-  min-width: 200px;
-  max-width: 200px;
-  flex: 0 0 200px;
-}
-
-.action-cell.fixed-cell {
-  width: 60px;
-  min-width: 60px;
-  max-width: 60px;
-  flex: 0 0 60px;
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-/* ===== 滚动条样式 ===== */
-.table-body::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.table-body::-webkit-scrollbar-track {
-  background: #f8f9fa;
-}
-
-.table-body::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 4px;
-}
-
-.table-body::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
-
-/* ===== 响应式优化 ===== */
-@media (max-width: 768px) {
-  .table-cell {
-    padding: 0 8px;
-  }
-
-  .task-name-cell {
-    min-width: 150px;
-  }
-
-  .header-text,
-  .task-name {
-    font-size: 12px;
-  }
-}
-
-/* ===== 任务悬停操作菜单 ===== */
-.task-name-content {
-  position: relative;
-}
-
-/* 任务文本区域 */
-.task-text-area {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-  /* 允许文本压缩，为操作按钮预留空间 */
-}
-
-.task-hover-actions {
-  display: flex;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 4px;
-  padding: 2px 4px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-  z-index: 100;
-  animation: fadeIn 0.2s ease;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  flex-shrink: 0;
-  /* 操作按钮不压缩，始终保持原尺寸 */
-}
-
-.task-action-btn {
-  width: 24px;
-  height: 24px;
-  border-radius: 3px;
-  border: none;
-  background: #f3f4f6;
-  color: #6b7280;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 0;
-  position: relative;
-  font-size: 12px;
-}
-
-.task-action-btn:hover {
-  background: #4a90e2;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.task-action-btn:hover::after {
-  content: attr(title);
-  position: absolute;
-  bottom: -25px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 3px 8px;
-  border-radius: 3px;
-  font-size: 11px;
-  white-space: nowrap;
-  z-index: 101;
-}
-
-.edit-btn:hover {
-  background: #22c55e;
-}
-
-.add-sibling-btn:hover {
-  background: #3b82f6;
-}
-
-.add-child-btn:hover {
-  background: #8b5cf6;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50%) translateX(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(-50%) translateX(0);
-  }
-}
-
-/* 筛选功能相关样式 */
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: 100%;
-  padding: 0 8px;
-}
-
-.filter-icon {
-  cursor: pointer;
-  color: #606266;
-  font-size: 12px;
-  transition: color 0.3s;
-}
-
-.filter-icon:hover {
-  color: #409eff;
-}
-
-.filter-icon.active {
-  color: #409eff;
-}
-
-.drag-handle {
-  cursor: move;
-  color: #909399;
-  font-size: 12px;
-}
-
-.drag-handle:hover {
-  color: #409eff;
-}
-
-/* 任务类型图标样式 */
-.task-type-icon {
-  display: inline-flex;
-  align-items: center;
-  margin-right: 6px;
-  font-size: 14px;
-  vertical-align: middle;
-}
-
-/* 任务文本区域布局 */
-.task-text-area {
-  display: flex;
-  align-items: center;
-  flex: 1;
-}
-
-/* ===== 非固定列布局样式 ===== */
-.table-header-row.no-fixed-columns,
-.table-row.no-fixed-columns {
-  /* 不固定列时，使用简单的flex布局 */
-}
-
-.all-columns-header,
-.all-columns-content {
-  display: flex;
-  width: 100%;
-  /* 整体水平滚动 */
-}
-
-/* 非固定模式下的列宽度 */
-.no-fixed-columns .checkbox-cell {
-  width: 50px;
-  min-width: 50px;
-  max-width: 50px;
-  flex: 0 0 50px;
-}
-
-.no-fixed-columns .task-name-cell {
-  width: 200px;
-  min-width: 200px;
-  max-width: 200px;
-  flex: 0 0 200px;
-}
-
-/* 任务名称列动态宽度样式 */
-.task-name-cell {
-  transition: width 0.1s ease;
-  position: relative; /* 为了拖拽手柄定位 */
-}
-
-.no-fixed-columns .action-cell {
-  width: 60px;
-  min-width: 60px;
-  max-width: 60px;
-  flex: 0 0 60px;
-}
-
-/* 筛选弹窗样式 */
-.filter-popover {
-  padding: 12px;
-}
-
-.filter-options {
-  max-height: 200px;
-  overflow-y: auto;
-  margin-top: 8px;
-  border: 1px solid #e1e8ed;
-  border-radius: 4px;
-  padding: 8px;
-}
-
-.filter-option-header {
-  font-size: 12px;
-  color: #6b7280;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-.filter-option-item {
-  margin-bottom: 4px;
-}
-
-.filter-option-item:last-child {
-  margin-bottom: 0;
-}
-
-.filter-actions {
-  margin-top: 12px;
-  padding-top: 8px;
-  border-top: 1px solid #e1e8ed;
-  text-align: right;
-}
-
-.filter-actions .el-button {
-  margin-left: 8px;
-}
-
-/* ===== 列宽调整手柄样式 ===== */
-.column-resize-handle {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 4px;
-  height: 100%;
-  cursor: col-resize;
-  background: transparent;
-  border-right: 2px solid transparent;
-  transition: border-color 0.2s ease;
-  z-index: 10;
-}
-
-.column-resize-handle:hover {
-  border-right-color: #4a90e2;
-  background: rgba(74, 144, 226, 0.1);
-}
-
-.table-cell {
-  position: relative; /* 为了让调整手柄定位正确 */
-}
-
-/* 调整中的样式 */
-.table-cell.resizing {
-  background: rgba(74, 144, 226, 0.05);
-}
-
-/* ===== 单元格内联编辑样式 ===== */
-.cell-content {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  padding: 0 4px;
-  min-height: 24px; /* 适配新的行高 */
-  transition: background-color 0.2s ease;
-  overflow: hidden; /* 防止内容溢出 */
-}
-
-.cell-content.editable {
-  cursor: text;
-  border-radius: 3px;
-}
-
-.cell-content.editable:hover {
-  background: rgba(74, 144, 226, 0.05);
-  box-shadow: inset 0 0 0 1px rgba(74, 144, 226, 0.2);
-}
-
-.cell-edit-input {
-  width: 100%;
-  height: 24px; /* 适配新的行高 */
-  border: 1px solid #4a90e2;
-  border-radius: 3px;
-  padding: 0 6px;
-  font-size: 11px; /* 压缩字体 */
-  background: #ffffff;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
-  box-sizing: border-box; /* 防止溢出 */
-  max-width: 100%; /* 确保不超出单元格 */
-}
-
-.cell-edit-input:focus {
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
-}
-
-/* 特殊字段的编辑样式 */
-.cell-edit-input[type="number"] {
-  text-align: right;
-}
-
-.cell-edit-input[type="date"] {
-  padding: 0 4px;
-}
-
-/* 编辑模式下的进度条样式调整 */
-.progress-content {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.progress-bar {
-  flex: 1;
-  height: 12px;
-  background: #f0f0f0;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  transition: width 0.3s ease;
-  border-radius: 6px;
-}
-
-.progress-text {
-  font-size: 11px;
-  color: #666;
-  min-width: 35px;
-  text-align: right;
-}
-
-/* 可编辑提示 */
-.cell-content.editable::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-top: 4px solid #d1d5db;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.cell-content.editable:hover::after {
-  opacity: 1;
-}
-
-/* ===== 任务名称编辑特殊样式 ===== */
-.task-name-cell-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.task-name-input {
-  flex: 1;
-  min-width: 120px;
-}
-
-/* ===== 状态选择器特殊样式 ===== */
-.status-select {
-  min-width: 100px;
-  padding: 2px 4px;
-  font-size: 12px;
-  background: #ffffff;
-  border: 1px solid #4a90e2;
-  border-radius: 3px;
-  outline: none;
-}
-
-.status-select:focus {
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
-}
-
-/* Milestone 指示器样式 */
-.milestone-indicator {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  background: linear-gradient(135deg, #f39c12, #e67e22);
-  color: #ffffff;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  min-width: 60px;
-  justify-content: center;
-}
-
-.duration-text {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-/* 表格行悬停效果 */
-.table-row.row-hover {
-  background-color: #f8f9fa;
-  transition: background-color 0.2s ease;
-}
-
-/* 悬浮编辑按钮 */
-.hover-edit-btn {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 26px;
-  height: 26px;
-  background: #409eff;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 20;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.4);
-  border: 2px solid white;
-  opacity: 0.95;
-}
-
-.hover-edit-btn:hover {
-  background: #337ecc;
-  border-color: white;
-  transform: translateY(-50%) scale(1.15);
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.6);
-  opacity: 1;
-}
-
-.hover-edit-btn i {
-  font-size: 13px;
-  color: white;
-  font-weight: bold;
-}
-
-/* 确保表格行相对定位，以便悬浮按钮正确定位 */
-.table-row {
-  position: relative !important;
-}
-
-/* 修复表格行样式问题 */
-.table-row.data-row {
-  position: absolute !important;
-  left: 0;
-  right: 0;
-  height: 28px;
-  border-bottom: 1px solid #ebeef5;
-  background: white;
-}
-
-.table-row.data-row.no-fixed-columns {
-  position: absolute !important;
-  width: 100%;
-}
-
-/* 悬停状态的表格行 */
-.table-row.row-hover {
-  background-color: #f8f9fa !important;
-  transition: background-color 0.2s ease;
-}
-
-</style>

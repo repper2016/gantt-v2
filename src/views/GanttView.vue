@@ -79,7 +79,8 @@
         :allow-drag-outside="allowDragOutside"
         :drag-outside-config="dragOutsideConfig"
         :milestone-linkable="milestoneLinkable"
-        :show-task-names="false"
+        :connection-style="'smart'"
+        :show-task-names="true"
         @update:showSettingsDialog="$emit('update:showSettingsDialog', $event)"
         @update:tooltipEnabled="handleTooltipEnabledChange"
         @update:tooltipDelay="handleTooltipDelayChange"
@@ -122,14 +123,15 @@ export default {
       milestoneLinkable: false, // 默认不允许milestone连线
       columns: [
         { id: 'checkbox', prop: 'checkbox', label: 'Select', visible: true, width: 50, minWidth: 50, maxWidth: 50, order: 0, align: 'center', fixed: true },
-        { id: 'taskName', prop: 'name', label: 'Deliverable/Task/Milestone ', visible: true, width: 450, minWidth: 150, maxWidth: 400, order: 1, align: 'left', flex: 2, filterable: true },
-        { id: 'progress', prop: 'progress', label: 'Progress', visible: true, width: 120, minWidth: 80, maxWidth: 120, order: 2, align: 'center', flex: 1, filterable: true },
-        { id: 'startDate', prop: 'startDate', label: 'Start Date', visible: true, width: 180, minWidth: 150, maxWidth: 340, order: 3, align: 'center', flex: 1, filterable: true },
-        { id: 'endDate', prop: 'endDate', label: 'End Date', visible: true, width: 180, minWidth: 150, maxWidth: 340, order: 4, align: 'center', flex: 1, filterable: true },
-        { id: 'duration', prop: 'duration', label: 'Duration', visible: true, width: 100, minWidth: 80, maxWidth: 120, order: 5, align: 'center', flex: 1, filterable: true },
-        { id: 'planStartDate', prop: 'planStartDate', label: 'Plan Start', visible: false, width: 180, minWidth: 150, maxWidth: 140, order: 6, align: 'center', flex: 1, filterable: true },
-        { id: 'planEndDate', prop: 'planEndDate', label: 'Plan End', visible: false, width: 180, minWidth: 150, maxWidth: 340, order: 7, align: 'center', flex: 1, filterable: true },
-        { id: 'status', prop: 'status', label: 'Status', visible: true, width: 150, minWidth: 150, maxWidth: 320, order: 8, align: 'center', flex: 1, filterable: true }
+        { id: 'taskName', prop: 'name', label: 'Deliverable/Task/Milestone ', visible: true, width: 450, minWidth: 250, maxWidth: 600, order: 1, align: 'left', flex: 2, filterable: true },
+        { id: 'assignee', prop: 'assignee', label: 'Assignee ', visible: true, width: 250, minWidth: 150, maxWidth: 400, order: 2, align: 'left', flex: 2, filterable: true },
+        { id: 'progress', prop: 'progress', label: 'Progress', visible: false, width: 120, minWidth: 80, maxWidth: 120, order: 3, align: 'center', flex: 1, filterable: true },
+        { id: 'startDate', prop: 'startDate', label: 'Start Date', visible: true, width: 180, minWidth: 150, maxWidth: 340, order: 4, align: 'center', flex: 1, filterable: true },
+        { id: 'endDate', prop: 'endDate', label: 'End Date', visible: true, width: 180, minWidth: 150, maxWidth: 340, order: 5, align: 'center', flex: 1, filterable: true },
+        { id: 'duration', prop: 'duration', label: 'Duration', visible: true, width: 100, minWidth: 80, maxWidth: 120, order: 6, align: 'center', flex: 1, filterable: true },
+        { id: 'planStartDate', prop: 'planStartDate', label: 'Plan Start', visible: false, width: 180, minWidth: 150, maxWidth: 140, order: 7, align: 'center', flex: 1, filterable: true },
+        { id: 'planEndDate', prop: 'planEndDate', label: 'Plan End', visible: false, width: 180, minWidth: 150, maxWidth: 340, order: 8, align: 'center', flex: 1, filterable: true },
+        { id: 'status', prop: 'status', label: 'Status', visible: true, width: 150, minWidth: 150, maxWidth: 320, order: 9, align: 'center', flex: 1, filterable: true }
       ],
       // === Tooltip 工具提示配置 ===
       tooltipEnabled: true,              // 是否启用工具提示，默认启用

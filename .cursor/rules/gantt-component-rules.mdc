@@ -1,0 +1,122 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 甘特图组件结构与最佳实践指南
+
+## 核心组件结构
+
+主要组件及其职责：
+
+1. [GanttChart.vue](mdc:src/components/GanttChart.vue)
+   - 甘特图主容器组件
+   - 负责整体布局和状态管理
+   - 集成所有子组件并处理它们之间的通信
+
+2. [GanttBars.vue](mdc:src/components/GanttBars.vue)
+   - 任务条形图渲染组件
+   - 处理任务的可视化展示
+   - 管理拖拽、缩放等交互
+
+3. [EditDialog](mdc:src/components/editDialog/index.vue)
+   - 任务编辑对话框组件
+   - 提供任务属性的编辑界面
+   - 支持负责人、日期、进度等设置
+
+## 数据流规范
+
+### 任务数据结构
+```typescript
+interface Task {
+  id: string;
+  name: string;
+  startDate: string;  // YYYY-MM-DD HH:mm:ss
+  endDate: string;    // YYYY-MM-DD HH:mm:ss
+  progress: number;   // 0-100
+  assignee: string;
+  status: string;
+  attachments: any[];
+  links: any[];
+  parentId: string | null;
+}
+```
+
+### 事件处理流程
+1. 任务更新：
+   ```
+   EditDialog -> handleDialogSave -> addTask/updateTask -> refreshChart
+   ```
+2. 任务拖拽：
+   ```
+   GanttBars -> handleBarDrag -> updateTask -> refreshChart
+   ```
+
+## 编码规范
+
+1. 日期处理
+   - 统一使用moment.js
+   - 存储格式：YYYY-MM-DD HH:mm:ss
+   - 显示格式：根据locale配置
+
+2. 性能优化
+   - 大量数据使用虚拟滚动
+   - 避免频繁更新视图
+   - 使用防抖处理连续操作
+
+3. 错误处理
+   - 所有异步操作必须使用try/catch
+   - 提供友好的错误提示
+   - 保持数据一致性
+
+## 组件通信规则
+
+1. 父子组件通信
+   - Props向下传递数据
+   - Events向上传递事件
+   - 避免直接操作父组件数据
+
+2. 全局状态管理
+   - 使用Vuex管理共享状态
+   - 通过getter获取数据
+   - 通过action修改数据
+
+## 最佳实践
+
+1. 数据验证
+   ```js
+   // 在保存前验证数据
+   if (!task.name || !task.startDate || !task.endDate) {
+     throw new Error('任务信息不完整');
+   }
+   ```
+
+2. 日期格式化
+   ```js
+   // 统一的日期格式化
+   const formattedDate = moment(date).format('YYYY-MM-DD HH:mm:ss');
+   ```
+
+3. 错误处理
+   ```js
+   try {
+     await this.addTask(task);
+     this.$message.success('任务添加成功');
+   } catch (error) {
+     console.error('添加任务失败:', error);
+     this.$message.error('添加任务失败');
+   }
+   ```
+
+## 注意事项
+
+1. 避免直接修改props
+2. 所有日期操作使用moment.js
+3. 大数据量下使用虚拟滚动
+4. 保持组件职责单一
+5. 提供适当的加载状态
+6. 确保错误处理完整性
+7. 注意数据验证和类型检查
+8. 保持代码注释的完整性
+9. 遵循Vue.js最佳实践
+10. 确保组件间通信清晰

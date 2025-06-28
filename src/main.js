@@ -8,6 +8,7 @@ import '@/styles/themes.css'
 import '@/styles/themes-dhtmlx.css'
 import '@/styles/performance.css'
 import '@/styles/gantt-bar.css'
+import '@/styles/gantt-table.css'
 
 // 功能配置
 import { isDebuggingEnabled } from '@/config/features'

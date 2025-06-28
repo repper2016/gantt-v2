@@ -1,4 +1,3 @@
-
 .gantt-bars {
   position: relative;
   height: 100%;
@@ -50,18 +49,100 @@
 }
 
 .dependency-line {
-  transition: stroke 0.2s ease, stroke-width 0.2s ease;
-  cursor: pointer;
+  fill: none;
+  stroke: #3498db;
+  stroke-width: 2;
+  /* 移除过渡效果，确保直角显示清晰 */
+  transition: none;
+  /* 确保直角显示锐利 */
+  stroke-linejoin: miter;
+  stroke-linecap: butt;
+  /* 提高默认不透明度 */
+  opacity: 0.95;
+}
+
+/* FS类型连线样式 */
+.dependency-line.fs-dependency {
+  stroke: #e74c3c;
+  z-index: 100;
+  opacity: 1;
 }
 
 .dependency-line:hover {
-  stroke-width: 3 !important;
-  filter: brightness(1.2);
+  stroke-width: 3;
+  opacity: 1;
+  z-index: 10;
 }
 
 .dependency-line.selected {
-  stroke: #ff4757 !important;
-  stroke-width: 4 !important;
+  stroke: #e74c3c;
+  stroke-width: 3;
+  opacity: 1;
+  z-index: 11;
+}
+
+/* 高亮状态 */
+.dependency-line.highlighted {
+  stroke: #27ae60;
+  stroke-width: 3;
+  opacity: 1;
+  z-index: 12;
+}
+
+/* 箭头标记样式 */
+.gantt-dependency-lines marker {
+  fill: #2980b9; /* 更深的蓝色 */
+  stroke: none;
+}
+
+/* FF类型箭头 */
+.dependency-line.ff-dependency + defs marker {
+  fill: #2980b9; /* 更深的蓝色 */
+}
+
+/* SS类型箭头 */
+.dependency-line.ss-dependency + defs marker {
+  fill: #27ae60; /* 更深的绿色 */
+}
+
+/* SF类型箭头 */
+.dependency-line.sf-dependency + defs marker {
+  fill: #8e44ad; /* 更深的紫色 */
+}
+
+/* FS类型箭头 */
+.dependency-line.fs-dependency + defs marker {
+  fill: #c0392b; /* 更深的红色 */
+}
+
+/* 高亮状态 */
+.dependency-line.highlighted + defs marker {
+  fill: #27ae60;
+}
+
+/* 选中状态 */
+.dependency-line.selected + defs marker {
+  fill: #e74c3c;
+}
+
+/* 确保箭头大小合适 */
+.gantt-dependency-lines marker {
+  markerWidth: 10;
+  markerHeight: 10;
+  refX: 9;
+  refY: 5;
+}
+
+/* 添加连线层级样式 */
+.dependency-line[data-layer="0"] { opacity: 0.95; }
+.dependency-line[data-layer="1"] { opacity: 0.85; }
+.dependency-line[data-layer="2"] { opacity: 0.75; }
+.dependency-line[data-layer="3"] { opacity: 0.65; }
+.dependency-line[data-layer="4"] { opacity: 0.55; }
+
+/* 移除所有动画效果 */
+@keyframes line-pulse {
+  0%, 100% { stroke-width: 2; }
 }
 
 .label-group {
@@ -1039,7 +1120,8 @@
 
 /* 依赖连线高亮样式 */
 .dependency-line.highlighted {
-  animation: line-pulse 2s infinite;
+  stroke: #27ae60;
+  stroke-width: 3;
 }
 
 .dependency-line.dimmed {
@@ -1315,6 +1397,7 @@
   cursor: pointer;
   border: 2px solid transparent;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .gantt-color-option:hover {
@@ -2055,6 +2138,9 @@
 .gantt-dependency-lines marker {
   fill-opacity: 1;
   stroke-opacity: 1;
+  overflow: visible;
+  transform-origin: center;
+  transform: scale(0.9); /* 增大箭头尺寸 */
 }
 
 /* 贝塞尔曲线连接线样式 */
@@ -2082,12 +2168,211 @@
 }
 
 @keyframes bezier-highlight {
-  0%, 100% {
-    stroke-opacity: 1;
-    stroke-width: 2.5;
-  }
-  50% {
-    stroke-opacity: 0.7;
-    stroke-width: 3;
-  }
+  0% { stroke-width: 2; }
+  100% { stroke-width: 2; }
+}
+
+/* 依赖连线样式 - 直线版 */
+.dependency-line-group {
+  pointer-events: all;
+}
+
+.dependency-line {
+  stroke: #95a5a6;
+  stroke-width: 2;
+  fill: none;
+  pointer-events: stroke;
+  transition: stroke 0.2s ease, stroke-width 0.2s ease;
+  z-index: 1;
+}
+
+/* 箭头标记样式 */
+#arrow-default path {
+  fill: #95a5a6;
+  stroke: none;
+  transform: translate(-2px, 0);
+}
+
+#arrow-highlight path {
+  fill: #3498db;
+  stroke: none;
+  transform: translate(-2px, 0);
+}
+
+#arrow-selected path {
+  fill: #ff4757;
+  stroke: none;
+  transform: translate(-2px, 0);
+}
+
+/* 连线状态样式 */
+.dependency-line.highlighted {
+  stroke: #3498db;
+  stroke-width: 2.5;
+  marker-end: url(#arrow-highlight);
+}
+
+.dependency-line.selected {
+  stroke: #ff4757;
+  stroke-width: 2.5;
+  marker-end: url(#arrow-selected);
+}
+
+/* 连线标签样式 */
+.dependency-label {
+  font-size: 12px;
+  fill: #666;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dependency-label.highlighted {
+  fill: #3498db;
+  font-weight: 500;
+}
+
+.dependency-label.selected {
+  fill: #ff4757;
+  font-weight: 500;
+}
+
+/* 连线悬停效果 */
+.dependency-line-group:hover .dependency-line:not(.highlighted):not(.selected) {
+  stroke-width: 2px;
+}
+
+/* 确保连线在任务条上层但不影响交互 */
+.gantt-dependency-lines {
+  pointer-events: none;
+  z-index: 2;
+}
+
+.dependency-line {
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+/* 里程碑连线特殊样式 */
+.milestone-connection .dependency-line {
+  stroke-dasharray: none;
+}
+
+/* 不同依赖类型的连线样式 */
+.dependency-line[data-type="FS"],
+.dependency-line[data-type="SS"],
+.dependency-line[data-type="FF"],
+.dependency-line[data-type="SF"] {
+  stroke-dasharray: none;
+  marker-end: url(#arrow-default);
+}
+
+/* 优化连线性能 */
+.dependency-line {
+  shape-rendering: crispEdges;
+}
+
+.table-cell {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 0 8px;
+  height: 100%;
+  border-right: 1px solid #e8e8e8;
+}
+
+.action-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.el-dropdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.el-dropdown-menu {
+  margin-top: 5px;
+}
+
+/* 确保下拉菜单不会被遮挡 */
+.el-dropdown-menu.el-popper {
+  z-index: 3000;
+}
+
+/* 修复图标位置 */
+.el-button.el-button--text [class^="el-icon-"] {
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+/* 确保下拉菜单项可以正确hover */
+.el-dropdown-menu__item {
+  line-height: 36px;
+  padding: 0 20px;
+  margin: 0;
+  font-size: 14px;
+  color: #606266;
+  cursor: pointer;
+  outline: none;
+}
+
+.el-dropdown-menu__item:hover {
+  background-color: #f5f7fa;
+}
+
+/* 添加过渡动画使菜单显示更平滑 */
+.el-dropdown-menu--medium {
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+/* Assignee列样式优化 */
+.cell-edit-input.assignee-select {
+  width: 100%;
+  max-width: 100%;
+  border: none !important;
+}
+
+.cell-edit-input.assignee-select .el-input {
+  height: 28px;
+  line-height: 28px;
+}
+
+.cell-edit-input.assignee-select .el-input__inner {
+  height: 24px;
+  line-height: 24px;
+  padding-right: 20px;
+  padding-left: 8px;
+  border-radius: 2px;
+  font-size: 12px;
+  margin-top: -10px;;
+  border: none;
+}
+
+.cell-edit-input.assignee-select .el-input__suffix {
+  right: 0;
+  height: 28px;
+  line-height: 28px;
+  transform: scale(0.8);
+  transform-origin: center right;
+}
+
+.cell-edit-input.assignee-select .el-input__icon {
+  width: 20px;
+  line-height: 28px;
+  font-size: 12px;
+}
+
+/* 下拉选项样式 */
+.el-select-dropdown.assignee-dropdown {
+  margin-top: 4px !important;
+}
+
+.el-select-dropdown.assignee-dropdown .el-select-dropdown__item {
+  height: 28px;
+  line-height: 28px;
+  font-size: 12px;
+  padding: 0 8px;
 }
