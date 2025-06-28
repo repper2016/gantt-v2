@@ -1094,559 +1094,6 @@
 
 /* 关键路径样式 */
 .gantt-bar.critical-path {
-  box-shadow: 0 0 0 2px rgba(255, 71, 87, 0.7) !important;
-  z-index: 15;
-  position: relative;
-}
-
-.gantt-bar.critical-path::before {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -4px;
-  border: 2px dashed rgba(255, 71, 87, 0.5);
-  border-radius: 4px;
-  pointer-events: none;
-  animation: pulse-border 2s infinite;
-}
-
-@keyframes pulse-border {
-  0% { border-color: rgba(255, 71, 87, 0.5); }
-  50% { border-color: rgba(255, 71, 87, 0.8); }
-  100% { border-color: rgba(255, 71, 87, 0.5); }
-}
-
-/* 依赖连线高亮样式 */
-.dependency-line.highlighted {
-  stroke: #27ae60;
-  stroke-width: 3;
-}
-
-.dependency-line.dimmed {
-  opacity: 0.2;
-  stroke-dasharray: 5,5;
-}
-
-@keyframes line-pulse {
-  0%, 100% {
-    stroke-width: 3;
-  }
-  50% {
-    stroke-width: 4;
-  }
-}
-
-.gantt-connection-points {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 11;
-}
-
-.gantt-connection-point {
-  position: absolute;
-  width: 10px; /* 扁平化设计，尺寸适中 */
-  height: 10px; /* 扁平化设计，尺寸适中 */
-  border-radius: 50%;
-  background: #ffffff;
-  border: 2px solid #3498db;
-  opacity: 0;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 12;
-  pointer-events: auto;
-  cursor: crosshair;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.gantt-connection-point.gantt-connection-point-left {
-  left: -16px; /* 更贴近节点，提高易用性 */
-}
-
-.gantt-connection-point.gantt-connection-point-right {
-  right: -16px; /* 更贴近节点，提高易用性 */
-}
-
-.gantt-connection-point.active {
-  opacity: 1;
-}
-
-.gantt-connection-point.connecting {
-  background: #ff4757;
-  border-color: #ffffff;
-  z-index: 7;
-}
-
-.gantt-connection-dot {
-  display: none; /* 不再需要内部dot */
-}
-
-.gantt-connection-point:hover {
-  background: #3498db;
-  border-color: #ffffff;
-  transform: translateY(-50%) scale(1.2);
-}
-
-.gantt-connection-point.active {
-  opacity: 1;
-}
-
-.gantt-connection-preview {
-  position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 4;
-}
-
-.gantt-connection-preview line {
-  stroke: #1890ff;
-  stroke-width: 2;
-  stroke-dasharray: 4,4;
-  opacity: 0.8;
-}
-
-.gantt-connection-preview circle {
-  fill: #1890ff;
-  opacity: 0.8;
-}
-
-/* dhtmlx风格的依赖连接线样式 */
-.gantt-dependency-lines {
-  position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.gantt-dependency-group {
-  pointer-events: auto;
-}
-
-.gantt-link-container {
-  cursor: pointer;
-}
-
-.gantt-link-hit-area {
-  cursor: pointer;
-  opacity: 0;
-}
-
-.gantt-link-hit-area:hover {
-  opacity: 0.1;
-  stroke: #1890ff;
-}
-
-.gantt-dependency-line {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.9;
-}
-
-.gantt-dependency-line.selected {
-  filter: url(#connectionShadow) drop-shadow(0 0 3px rgba(255, 71, 87, 0.6));
-  opacity: 1;
-}
-
-.gantt-dependency-line.highlighted {
-  filter: url(#connectionShadow) drop-shadow(0 0 3px rgba(24, 144, 255, 0.6));
-  animation: link-highlight 2s infinite;
-  opacity: 1;
-}
-
-.gantt-dependency-line.dimmed {
-  opacity: 0.25;
-  stroke-dasharray: 3,3;
-  filter: none;
-}
-
-.gantt-dependency-line.gray-mode {
-  opacity: 0.7;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes link-highlight {
-  0%, 100% {
-    stroke-opacity: 1;
-  }
-  50% {
-    stroke-opacity: 0.6;
-  }
-}
-
-/* 连接线标签样式 */
-.gantt-link-label-group {
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-.gantt-link-label-bg {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.gantt-link-label-bg:hover {
-  fill: rgba(248, 249, 250, 0.98);
-  stroke: rgba(24, 144, 255, 0.8);
-  stroke-width: 0.8;
-}
-
-.gantt-link-label-text {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  user-select: none;
-}
-
-.gantt-link-label-text.selected {
-  font-weight: 600;
-}
-
-.gantt-link-label-text:hover {
-  fill: #1890ff;
-}
-
-/* 控制按钮样式 */
-.gantt-link-controls {
-  pointer-events: auto;
-}
-
-.gantt-link-color-btn,
-.gantt-link-delete-btn {
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.gantt-link-color-btn:hover .gantt-color-button,
-.gantt-link-delete-btn:hover .gantt-delete-button {
-  transform: scale(1.1);
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
-}
-
-.gantt-color-button,
-.gantt-delete-button {
-  transition: all 0.2s ease;
-}
-
-/* 连接点在任务条悬停时显示 */
-.gantt-bar-container:hover .gantt-connection-point {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* 连接线编辑对话框样式 - Element UI Dialog */
-/* 确保对话框和遮罩层的正确层级 */
-.gantt-link-edit-dialog {
-
-}
-
-.gantt-link-edit-dialog .el-dialog {
-  margin-top: 5vh !important;
-
-}
-
-
-.gantt-link-edit-content {
-  padding: 0;
-}
-
-.gantt-link-info {
-  margin-bottom: 20px;
-}
-
-.gantt-color-selector {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.gantt-color-preview {
-  width: 28px; /* 修复颜色预览尺寸 */
-  height: 28px; /* 修复颜色预览尺寸 */
-  border-radius: 6px;
-  border: 2px solid #e1e5e9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.color-text {
-  font-size: 10px;
-  color: white;
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.gantt-color-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.gantt-color-option {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.gantt-color-option:hover {
-  transform: scale(1.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.gantt-color-option.selected {
-  border-color: #409eff;
-  transform: scale(1.15);
-  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.3);
-}
-
-/* 原有按钮样式已移除，现在使用 Element UI 按钮 */
-
-/* 进度拖拽手柄容器 - 默认隐藏，hover时显示 */
-.gantt-progress-handle-container {
-  position: absolute;
-  top: 100%;
-  right: -10px; /* 进一步缩小位置偏移 */
-  width: 20px; /* 进一步减小点击区域 */
-  height: 16px; /* 进一步减小点击区域高度 */
-  cursor: col-resize;
-  z-index: 25;
-  opacity: 0; /* 默认隐藏 */
-  transition: opacity 0.3s ease, transform 0.15s ease, background 0.15s ease;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  border-radius: 2px;
-  will-change: transform;
-  background: transparent; /* 移除背景 */
-  /* 更精确的点击区域，解决拖拽时显示过大的问题 */
-}
-
-/* 底部三角形进度拖拽手柄 - 更小更精致 */
-.gantt-progress-handle {
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-bottom: 6px solid #4a90e2;
-  transition: transform 0.1s ease, border-bottom-color 0.1s ease;
-  will-change: transform, border-bottom-color;
-  /* 进一步缩小三角形尺寸，解决拖拽时显示过大的问题 */
-}
-
-.gantt-bar:hover .gantt-progress-handle-container {
-  opacity: 1; /* 悬停甘特条时显示手柄 */
-}
-
-/* 百分比始终可见，移除悬停逻辑 */
-
-.gantt-progress-handle-container:hover {
-  opacity: 1;
-  transform: translateY(-1px);
-  background: transparent; /* 移除背景 */
-}
-
-.gantt-progress-handle-container:hover .gantt-progress-handle {
-  border-bottom-color: #357abd;
-  /* 悬停时只改变颜色，不放大 */
-}
-
-/* 百分比始终可见，移除特殊悬停效果 */
-
-.gantt-progress-handle-container:active {
-  transform: translateY(0px);
-  background: transparent;
-}
-
-.gantt-progress-handle-container:active .gantt-progress-handle {
-  border-bottom-color: #2c5f8a;
-}
-
-/* ===== 任务名称标签样式 - JIRA风格 ===== */
-.gantt-task-name-label {
-  position: absolute;
-  font-size: 12px;
-  color: #5e6c84;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 400;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 4;
-  user-select: none;
-  /* 精确垂直居中对齐 */
-  line-height: 12px;
-  height: 12px;
-  /* 超长名称处理 */
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 暗色主题下的任务名称标签 */
-.dark-theme .gantt-task-name-label {
-  color: #9fadbc;
-}
-
-/* Element UI 对话框底部按钮区域样式 */
-.dialog-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* 父节点甘特条样式 - 绿色传统样式 */
-.gantt-bar.parent-task {
-  background: linear-gradient(to bottom, #4CAF50, #388E3C);
-  pointer-events: auto;
-  height: 14px;
-  border-radius: 0;
-  padding: 0;
-  overflow: visible;
-  display: block;
-  position: relative;
-  /* 绿色传统甘特图父节点样式 */
-}
-
-.gantt-bar.parent-task::before {
-  content: "";
-    position: absolute;
-    left: 3px;
-    transform: translateX(-50%) rotate(135deg);
-    bottom: -5px;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 10px solid #3d9641;
-
-}
-
-.gantt-bar.parent-task::after {
-   content: "";
-    position: absolute;
-    right: -15px;
-    transform: translateX(-50%) rotate(90deg);
-    bottom: -5px;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 10px solid #3d9641;
-  /* 右端绿色三角形 */
-}
-
-.gantt-bar.parent-task .gantt-bar-main {
-  height: 100%;
-  background: linear-gradient(to bottom, #4CAF50, #388E3C);
-  border-radius: 0;
-  margin: 0;
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  /* 绿色主体区域 */
-}
-
-.gantt-bar.parent-task .gantt-bar-text {
-  position: absolute;
-  top: 50%;
-  left: 8px;
-  right: 8px;
-  transform: translateY(-50%);
-  text-align: left;
-  font-size: 10px;
-  font-weight: 600;
-  color: #ffffff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
-  /* 白色文字，居中显示 */
-}
-
-.gantt-bar.parent-task .gantt-bar-progress-text {
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-  font-size: 10px;
-  font-weight: 600;
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
-  /* 进度文字 */
-}
-
-/* 父节点进度条样式 */
-.gantt-bar.parent-task .gantt-bar-progress {
-  background: linear-gradient(135deg, #66BB6A, #43A047);
-  border-radius: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-}
-
-.gantt-bar.parent-task .gantt-bar-progress::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
-  border-radius: 0;
-}
-
-
-
-/* 父节点拖拽时的特殊样式 */
-.gantt-bar.parent-dragging {
-  z-index: 150;
-}
-
-.gantt-bar.parent-dragging::before,
-.gantt-bar.parent-dragging::after {
-  background: linear-gradient(135deg, #f39c12, #e67e22);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 8px rgba(243, 156, 18, 0.4);
-  animation: parent-drag-pulse 1s infinite;
-}
-
-.gantt-bar.parent-dragging .gantt-bar-main {
-  background: linear-gradient(to bottom, #e74c3c, #c0392b);
-  box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.4);
-}
-
-.gantt-bar.parent-dragging .gantt-bar-text {
-  color: #ffffff;
-  font-weight: 700;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-}
-
-@keyframes parent-drag-pulse {
-  0%, 100% {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 8px rgba(243, 156, 18, 0.4);
-    opacity: 1;
-  }
-  50% {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 4px 12px rgba(243, 156, 18, 0.6);
-    opacity: 0.9;
-  }
-}
-
-/* 关键路径任务样式 */
-.gantt-bar.critical-path {
   position: relative;
   background: linear-gradient(to right, #ff6b6b, #f53b57);
   border: 2px solid #ff4757 !important;
@@ -1655,6 +1102,34 @@
   z-index: 10;
 }
 
+/* 主要关键路径 */
+.gantt-bar.critical-path-primary {
+  background: linear-gradient(to right, #ff6b6b, #f53b57);
+  border: 2px solid #ff4757 !important;
+  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3) !important;
+}
+
+/* 次要关键路径 */
+.gantt-bar.critical-path-secondary {
+  background: linear-gradient(to right, #ff9f43, #ffa502);
+  border: 2px solid #ff9f43 !important;
+  box-shadow: 0 2px 8px rgba(255, 159, 67, 0.3) !important;
+}
+
+/* 非关键路径任务（灰显效果） */
+.gantt-bar.non-critical-path {
+  opacity: 0.5;
+  filter: grayscale(70%);
+  transition: all 0.3s ease;
+}
+
+/* 非关键路径任务悬停效果 */
+.gantt-bar.non-critical-path:hover {
+  opacity: 0.8;
+  filter: grayscale(30%);
+}
+
+/* 关键路径标识图标 */
 .gantt-bar.critical-path::before {
   content: '⚠';
   position: absolute;
@@ -1670,27 +1145,38 @@
   font-weight: bold;
 }
 
+/* 次要关键路径标识图标 */
+.gantt-bar.critical-path-secondary::before {
+  background: #ff9f43;
+}
+
+/* 关键路径任务文本样式 */
 .gantt-bar.critical-path .gantt-bar-text {
   color: #fff !important;
   font-weight: bold !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-.gantt-bar.critical-path:hover {
-  background: linear-gradient(to right, #ff5252, #e84393);
-  box-shadow: 0 4px 12px rgba(255, 82, 82, 0.4) !important;
-}
-
-.gantt-bar.critical-path .gantt-bar-progress {
-  background: rgba(255, 255, 255, 0.25);
-}
-
+/* 关键路径发光动画 */
 @keyframes critical-path-glow {
-  0%, 100% {
+  0% {
     box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
   }
   50% {
-    box-shadow: 0 4px 16px rgba(255, 71, 87, 0.6);
+    box-shadow: 0 2px 12px rgba(255, 71, 87, 0.5);
+  }
+  100% {
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+  }
+}
+
+/* 次要关键路径发光动画 */
+@keyframes critical-path-secondary-glow {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(255, 159, 67, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(255, 159, 67, 0.6);
   }
 }
 

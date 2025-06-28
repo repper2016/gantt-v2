@@ -43,8 +43,34 @@
                         clearable
                         @input="handleTaskNameFilter"
                         @clear="clearTaskNameFilter"
-                        prefix-icon="el-icon-search"
-                      />
+                      >
+                        <!-- 自定义搜索图标 -->
+                        <template slot="prefix">
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="custom-search-icon"
+                          >
+                            <circle
+                              cx="11"
+                              cy="11"
+                              r="8"
+                              stroke="#9ca3af"
+                              stroke-width="2"
+                              fill="none"
+                            />
+                            <path
+                              d="m21 21-4.35-4.35"
+                              stroke="#9ca3af"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                            />
+                          </svg>
+                        </template>
+                      </el-input>
                       <div v-if="taskNameOptions.length > 0" class="filter-options">
                         <div class="filter-option-header">Available Tasks:</div>
                         <el-checkbox-group v-model="selectedTaskNames" @change="handleTaskNameFilterChange">
@@ -110,8 +136,34 @@
                         clearable
                         @input="handleAssigneeFilter"
                         @clear="clearAssigneeFilter"
-                        prefix-icon="el-icon-search"
-                      />
+                      >
+                        <!-- 自定义搜索图标 -->
+                        <template slot="prefix">
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="custom-search-icon"
+                          >
+                            <circle
+                              cx="11"
+                              cy="11"
+                              r="8"
+                              stroke="#9ca3af"
+                              stroke-width="2"
+                              fill="none"
+                            />
+                            <path
+                              d="m21 21-4.35-4.35"
+                              stroke="#9ca3af"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                            />
+                          </svg>
+                        </template>
+                      </el-input>
                       <div v-if="assigneeOptions.length > 0" class="filter-options">
                         <div class="filter-option-header">Available Assignees:</div>
                         <el-checkbox-group v-model="selectedAssignees" @change="handleAssigneeFilterChange">

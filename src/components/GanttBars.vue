@@ -1327,13 +1327,25 @@ export default {
     },
 
     dependencyLines() {
-      // 计算最新的连线，响应selectedDependency变化
-      // 强制依赖selectedDependency，确保选中状态变化时重新计算
+      // 计算最新的连线，响应selectedDependency和storeDependencies变化
+      // 强制依赖selectedDependency和storeDependencies，确保状态变化时重新计算
       const selectedKey = this.selectedDependency
         ? `${this.selectedDependency.from}-${this.selectedDependency.to}`
         : null;
 
-      // console.log('[调试] dependencyLines计算，选中连线:', selectedKey)
+      // 强制依赖storeDependencies以确保响应store变化
+      const depsLength = this.storeDependencies ? this.storeDependencies.length : 0;
+      const depsHash = this.storeDependencies
+        ? this.storeDependencies.map(d => `${d.from}-${d.to}-${d.type}-${d.lag}-${d.color}`).join('|')
+        : '';
+
+      console.log('[调试] dependencyLines计算', {
+        selectedKey,
+        depsLength,
+        storeDepsLength: this.storeDependencies?.length,
+        propsDepsLength: this.dependencies?.length
+      });
+
       return this.calculateDependencyLines();
     },
 
@@ -2369,6 +2381,32 @@ export default {
           );
 
           if (!exists) {
+            // 连线约束检查
+            const fromTask = this.connectionState.fromBar.task;
+            const toTask = targetBar.task;
+
+            // 1. 检查是否涉及milestone类型任务
+            if (fromTask.type === 'milestone' || toTask.type === 'milestone') {
+              this.$message.warning('里程碑节点不能参与连线');
+              console.log('[连线约束] 禁止milestone连线:', {
+                fromType: fromTask.type,
+                toType: toTask.type
+              });
+              return;
+            }
+
+            // 2. 检查是否为父子层级关系
+            const isParentChild = this.checkParentChildRelation(fromTask.id, toTask.id);
+            if (isParentChild) {
+              this.$message.warning('层级父子间不能创建连线');
+              console.log('[连线约束] 禁止父子层级连线:', {
+                from: fromTask.name,
+                to: toTask.name,
+                relation: isParentChild
+              });
+              return;
+            }
+
             // 确定连接到目标任务的哪个点
             const targetPoint = this.getTargetConnectionPoint(event, targetBar);
 
@@ -2520,6 +2558,79 @@ export default {
         }, 50);
       }
       this.internalShowDependencyLines = true; // 拖拽结束后恢复依赖线
+    },
+
+    // 检查两个任务是否为父子关系
+    checkParentChildRelation(taskId1, taskId2) {
+      // 标准化ID类型（确保类型一致）
+      const normalizedId1 = String(taskId1);
+      const normalizedId2 = String(taskId2);
+
+      console.log('[父子关系检查] 输入参数:', {
+        taskId1,
+        taskId2,
+        normalizedId1,
+        normalizedId2
+      });
+
+      // 检查taskId1是否为taskId2的父节点
+      const isParent1 = this.isParentOf(normalizedId1, normalizedId2);
+      // 检查taskId2是否为taskId1的父节点
+      const isParent2 = this.isParentOf(normalizedId2, normalizedId1);
+
+      console.log('[父子关系检查] 检查结果:', {
+        isParent1,
+        isParent2
+      });
+
+      if (isParent1) {
+        return 'parent-child'; // taskId1是taskId2的父节点
+      } else if (isParent2) {
+        return 'child-parent'; // taskId2是taskId1的父节点
+      }
+      return false; // 不是父子关系
+    },
+
+        // 检查parentId是否为childId的父节点（基于树结构递归检查）
+    isParentOf(parentId, childId) {
+      // 递归遍历任务树，查找父子关系
+      const checkInTaskTree = (tasks, currentParentId = null) => {
+        for (const task of tasks) {
+          // 标准化任务ID进行比较
+          const taskIdStr = String(task.id);
+          const currentParentIdStr = currentParentId ? String(currentParentId) : null;
+
+          // 如果当前任务ID匹配childId，检查它是否在parentId的子树中
+          if (taskIdStr === childId) {
+            return currentParentIdStr === parentId;
+          }
+
+          // 如果当前任务有子任务，递归检查
+          if (task.children && task.children.length > 0) {
+            const foundInChildren = checkInTaskTree(task.children, task.id);
+            if (foundInChildren) return true;
+          }
+        }
+        return false;
+      };
+
+      // 从tasks prop开始检查
+      const taskData = this.tasks || [];
+      console.log('[父子关系检查] isParentOf', {
+        parentId,
+        childId,
+        taskCount: taskData.length,
+        taskSample: taskData.slice(0, 2).map(t => ({ id: t.id, name: t.name, hasChildren: !!(t.children && t.children.length) }))
+      });
+
+      const result = checkInTaskTree(taskData);
+      console.log('[父子关系检查结果] isParentOf', {
+        parentId,
+        childId,
+        isParentChild: result
+      });
+
+      return result;
     },
 
     // 强制清理拖拽状态，防止"停不下来"
@@ -3208,9 +3319,20 @@ export default {
 
     // 计算依赖线 - 分离出独立方法便于优化
     calculateDependencyLines() {
-      if (!this.dependencies || this.dependencies.length === 0) {
+      // 优先使用store中的dependencies，确保数据同步
+      const activeDependencies = this.storeDependencies && this.storeDependencies.length > 0
+        ? this.storeDependencies
+        : this.dependencies;
+
+      if (!activeDependencies || activeDependencies.length === 0) {
+        console.log('[调试] 没有依赖关系数据');
         return [];
       }
+
+      console.log('[调试] 使用依赖关系数据:', {
+        source: this.storeDependencies && this.storeDependencies.length > 0 ? 'store' : 'props',
+        count: activeDependencies.length
+      });
 
       // 使用布局缓存 - 检查是否需要重新计算
       if (this.isLayoutCached()) {
@@ -3244,7 +3366,7 @@ export default {
 
       const lines = [];
 
-      for (const dep of this.dependencies) {
+      for (const dep of activeDependencies) {
         const fromBar = taskBarMap.get(dep.from);
         const toBar = taskBarMap.get(dep.to);
 
@@ -3510,8 +3632,8 @@ export default {
       this.linkEditModal.saving = true;
 
       try {
-        // 获取原始依赖关系
-        const originalDep = this.dependencies.find(
+        // 获取要更新的依赖关系（从store获取最新数据）
+        const originalDep = this.storeDependencies.find(
           (dep) =>
             dep.from === this.linkEditModal.link.from &&
             dep.to === this.linkEditModal.link.to
@@ -3522,78 +3644,61 @@ export default {
         }
 
         // 确保数据类型正确
-        const updatedDependency = {
-          ...originalDep,
+        const updatedData = {
           type: this.linkEditModal.type,
           lag: parseInt(this.linkEditModal.lag) || 0,
           label: this.linkEditModal.label || "",
           color: this.linkEditModal.color || "#3498db",
         };
 
-        console.log("[GanttBars] 准备更新依赖关系:", updatedDependency);
+        console.log("[GanttBars] 准备更新依赖关系:", {
+          from: originalDep.from,
+          to: originalDep.to,
+          updates: updatedData
+        });
 
-        // 1. 先触发父组件刷新事件
+        // 1. 更新store中的依赖关系
+        this.$store.commit("UPDATE_DEPENDENCY_FULL", {
+          from: originalDep.from,
+          to: originalDep.to,
+          updates: updatedData,
+        });
+
+        // 2. 等待store更新完成
+        await this.$nextTick();
+
+        // 3. 清除缓存并触发重新计算
+        this.clearDependencyCache();
+
+        // 4. 强制组件重新渲染
+        this.$forceUpdate();
+
+        // 5. 等待渲染完成
+        await this.$nextTick();
+
+        // 6. 触发父组件刷新事件
         this.$emit("dependency-updated", {
           action: "update",
-          dependency: updatedDependency,
-          force: true,
-          requireRefresh: true,
+          dependency: { ...originalDep, ...updatedData },
+          source: "edit-connection-save"
         });
-
-        // 2. 等待事件处理完成
-        await this.$nextTick();
-
-        // 3. 更新store中的依赖关系
-        this.$store.commit("UPDATE_DEPENDENCY_FULL", {
-          from: updatedDependency.from,
-          to: updatedDependency.to,
-          updates: {
-            type: updatedDependency.type,
-            lag: updatedDependency.lag,
-            label: updatedDependency.label,
-            color: updatedDependency.color,
-          },
-        });
-
-        // 4. 等待store更新完成
-        await this.$nextTick();
-
-        // 5. 清除所有缓存并重新计算
-        this.clearDependencyCache();
-        this._cachedDependencyLines = null;
-        this.taskBarMap = null;
-        this.flatTaskMap = null;
-        this.initializeCacheMaps();
-        this._cachedDependencyLines = this.calculateDependencyLines();
-
-        // 6. 强制组件重新渲染
-        this.$forceUpdate();
 
         // 7. 关闭弹框
         this.closeLinkEditModal();
 
         // 8. 显示成功提示
         this.$message({
-          message: "Connection updated successfully",
+          message: "连线更新成功",
           type: "success",
           duration: 2000,
         });
 
-        // 9. 触发全局事件通知其他组件
-        window.dispatchEvent(
-          new CustomEvent("dependency-updated", {
-            detail: {
-              from: updatedDependency.from,
-              to: updatedDependency.to,
-              updates: updatedDependency,
-              source: "saveLinkChanges",
-            },
-          })
-        );
+        console.log("[GanttBars] 连线保存完成");
+
       } catch (error) {
         console.error("[GanttBars] 保存连线变更失败:", error);
         this.$message({
-          message: `Failed to update connection: ${error.message}`,
+          message: `连线更新失败: ${error.message}`,
           type: "error",
           duration: 3000,
         });
@@ -5150,7 +5255,7 @@ export default {
       return true;
     },
 
-    // 计算关键路径 - 使用CPM算法
+    // 计算关键路径 - 使用增强型CPM算法
     calculateCriticalPath() {
       // 如果不显示关键路径，直接返回空数组
       if (!this.showCriticalPath) {
@@ -5170,10 +5275,13 @@ export default {
           isCritical: false,
           successors: [],
           duration: 0,
+          // 新增字段
+          weight: task.weight || 1, // 任务权重，默认为1
+          resourceLoad: task.resourceLoad || 0, // 资源负载，默认为0
+          completionImpact: task.progress ? (1 - task.progress / 100) : 1, // 完成度影响因子
         };
       });
-
-      // 计算任务持续时间（天数）
+      // 计算任务持续时间（天数）和加权持续时间
       for (const taskId in taskMap) {
         const task = taskMap[taskId];
         if (task.startDate && task.endDate) {

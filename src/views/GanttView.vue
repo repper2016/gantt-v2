@@ -154,7 +154,7 @@ export default {
       enableThreeLevelNodes: true,      // 是否启用三级节点，默认启用
       allowParentDrag: true,           // 父节点是否可拖拽，默认禁用
       allowParentEdit: true,           // 父节点是否可编辑，默认禁用
-      allowParentConnection: false,    // 父节点是否可以连线，默认禁用
+      allowParentConnection: true,     // 父节点可以连线，已添加父子层级约束
       highlightTaskLineage: false,      // 点击节点是否高亮显示血缘关系，默认禁用
 
       // === 右键菜单配置 ===
