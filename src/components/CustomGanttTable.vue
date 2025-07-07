@@ -263,7 +263,7 @@
                     :width="250"
                     @show="onFilterShow('taskName')"
                   >
-                    <filter-popover
+                    <FilterPopover
                       :options="taskNameOptions"
                       v-model="selectedTaskNames"
                       placeholder="搜索任务..."
@@ -1089,7 +1089,7 @@
                     popper-class="task-action-popover"
                     :visible-arrow="false"
                   >
-                    <task-action-menu
+                    <TaskActionMenu
                       :task="task"
                       @action="handleTaskAction"
                     />
@@ -1228,7 +1228,7 @@ export default {
       hoveredTaskId: null,
       collapsedTasks: new Set(),
       editingCells: {}, // 用于跟踪正在编辑的单元格
-      visibleActions: {}, // 用于跟踪显示的操作按钮
+      visibleActions: {} // 用于跟踪显示的操作按钮
     }
   },
   computed: {
@@ -1294,7 +1294,7 @@ export default {
 
     // 过滤后的任务数据
     filteredTasks() {
-      let tasks = this.tasks
+      let {tasks} = this
 
       // 统一通过 activeFilters 处理所有筛选条件，避免双重筛选
       if (Object.keys(this.activeFilters).length > 0) {
@@ -1529,40 +1529,42 @@ export default {
       if (!this.hasFilterOptions(column)) return []
 
       switch (column.id) {
-        case 'status':
-          return this.filterOptions.status
-        case 'progress':
-          return this.filterOptions.progress
-        case 'assignee':
-          // 获取所有任务中的不重复负责人
-          const assignees = this.tasks
-            .map(task => task.assignee)
-            .filter(assignee => assignee)
-          const uniqueAssignees = [...new Set(assignees)]
-          return uniqueAssignees.map(assignee => ({
-            label: assignee,
-            value: assignee
-          }))
-        case 'taskName':
-          // 任务名称筛选已改为使用复选框模式，不再使用下拉选项
-          console.warn('任务名称筛选不应使用 getFilterOptions 方法')
-          return []
-        case 'startDate':
-        case 'endDate':
-        case 'planStartDate':
-        case 'planEndDate':
-          // 日期类型筛选：按月份分组
-          const dates = this.tasks
-            .map(task => task[column.prop])
-            .filter(date => date)
-            .map(date => moment(date).format('YYYY-MM'))
-          const uniqueMonths = [...new Set(dates)].sort()
-          return uniqueMonths.map(month => ({
-            label: moment(month).format('MMM YYYY'),
-            value: month
-          }))
-        default:
-          return []
+      case 'status':
+        return this.filterOptions.status
+      case 'progress':
+        return this.filterOptions.progress
+      case 'assignee': {
+        // 获取所有任务中的不重复负责人
+        const assignees = this.tasks
+          .map(task => task.assignee)
+          .filter(assignee => assignee)
+        const uniqueAssignees = [...new Set(assignees)]
+        return uniqueAssignees.map(assignee => ({
+          label: assignee,
+          value: assignee
+        }))
+      }
+      case 'taskName':
+        // 任务名称筛选已改为使用复选框模式，不再使用下拉选项
+        console.warn('任务名称筛选不应使用 getFilterOptions 方法')
+        return []
+      case 'startDate':
+      case 'endDate':
+      case 'planStartDate':
+      case 'planEndDate': {
+        // 日期类型筛选：按月份分组
+        const dates = this.tasks
+          .map(task => task[column.prop])
+          .filter(date => date)
+          .map(date => moment(date).format('YYYY-MM'))
+        const uniqueMonths = [...new Set(dates)].sort()
+        return uniqueMonths.map(month => ({
+          label: moment(month).format('MMM YYYY'),
+          value: month
+        }))
+      }
+      default:
+        return []
       }
     },
 
@@ -1589,7 +1591,7 @@ export default {
       // 触发筛选事件，将筛选条件传递给父组件
       this.$emit('filter-change', {
         column: columnId,
-        value: value,
+        value,
         activeFilters: { ...this.activeFilters }
       })
     },
@@ -1597,21 +1599,21 @@ export default {
     // 获取任务字段值用于筛选
     getTaskValueForFilter(task, columnId) {
       switch (columnId) {
-        case 'taskName':
-          return task.name
-        case 'status':
-          return this.getTaskStatus(task).toLowerCase().replace(' ', '-')
-        case 'progress':
-          return task.progress || 0
-        case 'assignee':
-          return task.assignee
-        case 'startDate':
-        case 'endDate':
-        case 'planStartDate':
-        case 'planEndDate':
-          return task[columnId] ? moment(task[columnId]).format('YYYY-MM') : null
-        default:
-          return task[columnId]
+      case 'taskName':
+        return task.name
+      case 'status':
+        return this.getTaskStatus(task).toLowerCase().replace(' ', '-')
+      case 'progress':
+        return task.progress || 0
+      case 'assignee':
+        return task.assignee
+      case 'startDate':
+      case 'endDate':
+      case 'planStartDate':
+      case 'planEndDate':
+        return task[columnId] ? moment(task[columnId]).format('YYYY-MM') : null
+      default:
+        return task[columnId]
       }
     },
 
@@ -1623,49 +1625,50 @@ export default {
       }
 
       switch (columnId) {
-        case 'taskName':
-          // 统一处理任务名称筛选，支持数组和字符串两种格式
-          if (Array.isArray(filterValue)) {
-            // 多选模式：检查任务名称是否在选中列表中
-            return filterValue.length === 0 || filterValue.includes(taskValue)
-          } else if (typeof filterValue === 'string' && filterValue.trim() !== '') {
-            // 搜索模式：模糊匹配任务名称
-
-            return taskValue && typeof taskValue === 'string' &&
-                   taskValue.toLowerCase().includes(filterValue.toLowerCase())
-          }
-          return true
-        case 'status':
-          return taskValue === filterValue
-        case 'assignee':
+      case 'taskName':
+        // 统一处理任务名称筛选，支持数组和字符串两种格式
         if (Array.isArray(filterValue)) {
-            // 多选模式：检查任务名称是否在选中列表中
-            return filterValue.length === 0 || filterValue.includes(taskValue)
-          } else if (typeof filterValue === 'string' && filterValue.trim() !== '') {
-            // 搜索模式：模糊匹配任务名称
+          // 多选模式：检查任务名称是否在选中列表中
+          return filterValue.length === 0 || filterValue.includes(taskValue)
+        } else if (typeof filterValue === 'string' && filterValue.trim() !== '') {
+          // 搜索模式：模糊匹配任务名称
 
-            return taskValue && typeof taskValue === 'string' &&
+          return taskValue && typeof taskValue === 'string' &&
                    taskValue.toLowerCase().includes(filterValue.toLowerCase())
-          }
-          return true
-        case 'progress':
-          const progress = parseInt(taskValue) || 0
-          switch (filterValue) {
-            case '0': return progress === 0
-            case '1-25': return progress >= 1 && progress <= 25
-            case '26-50': return progress >= 26 && progress <= 50
-            case '51-75': return progress >= 51 && progress <= 75
-            case '76-99': return progress >= 76 && progress <= 99
-            case '100': return progress === 100
-            default: return true
-          }
-        case 'startDate':
-        case 'endDate':
-        case 'planStartDate':
-        case 'planEndDate':
-          return taskValue === filterValue
-        default:
-          return true
+        }
+        return true
+      case 'status':
+        return taskValue === filterValue
+      case 'assignee':
+        if (Array.isArray(filterValue)) {
+          // 多选模式：检查任务名称是否在选中列表中
+          return filterValue.length === 0 || filterValue.includes(taskValue)
+        } else if (typeof filterValue === 'string' && filterValue.trim() !== '') {
+          // 搜索模式：模糊匹配任务名称
+
+          return taskValue && typeof taskValue === 'string' &&
+                   taskValue.toLowerCase().includes(filterValue.toLowerCase())
+        }
+        return true
+      case 'progress': {
+        const progress = parseInt(taskValue) || 0
+        switch (filterValue) {
+        case '0': return progress === 0
+        case '1-25': return progress >= 1 && progress <= 25
+        case '26-50': return progress >= 26 && progress <= 50
+        case '51-75': return progress >= 51 && progress <= 75
+        case '76-99': return progress >= 76 && progress <= 99
+        case '100': return progress === 100
+        default: return true
+        }
+      }
+      case 'startDate':
+      case 'endDate':
+      case 'planStartDate':
+      case 'planEndDate':
+        return taskValue === filterValue
+      default:
+        return true
       }
     },
 
@@ -1830,7 +1833,7 @@ export default {
       if (!this.fixedColumns) return
 
       // 同步表头滚动
-      const scrollableHeader = this.$refs.scrollableHeader
+      const {scrollableHeader} = this.$refs
       if (scrollableHeader) {
         scrollableHeader.style.transform = `translateX(-${scrollLeft}px)`
       }
@@ -1878,7 +1881,7 @@ export default {
         })
 
         // 设置表头滚动区域宽度
-        const scrollableHeader = this.$refs.scrollableHeader
+        const {scrollableHeader} = this.$refs
         if (scrollableHeader) {
           scrollableHeader.style.width = `${totalScrollableWidth}px`
           scrollableHeader.style.minWidth = `${totalScrollableWidth}px`
@@ -1929,14 +1932,14 @@ export default {
       if (!this.isResizingColumn) return
 
       const deltaX = event.clientX - this.resizeStartX
-      let newWidth = Math.max(100, this.resizeStartWidth + deltaX)
+      const newWidth = Math.max(100, this.resizeStartWidth + deltaX)
 
       if (this.resizingColumn) {
         // 动态列调整
         this.$set(this.resizingColumn, 'width', newWidth)
         this.$emit('column-resize', {
           columnId: this.resizingColumn.id,
-          newWidth: newWidth
+          newWidth
         })
       } else {
         // 任务名称列调整
@@ -2044,9 +2047,9 @@ export default {
 
       const taskNameCells = this.$el.querySelectorAll('.task-name-cell')
       taskNameCells.forEach(cell => {
-        cell.style.width = this.taskNameColumnWidth + 'px'
-        cell.style.minWidth = this.taskNameColumnWidth + 'px'
-        cell.style.maxWidth = this.taskNameColumnWidth + 'px'
+        cell.style.width = `${this.taskNameColumnWidth  }px`
+        cell.style.minWidth = `${this.taskNameColumnWidth  }px`
+        cell.style.maxWidth = `${this.taskNameColumnWidth  }px`
       })
     },
 
@@ -2060,7 +2063,7 @@ export default {
 
       this.editingCell = {
         taskId: task.id,
-        field: field,
+        field,
         originalValue: currentValue
       }
       this.tempEditValue = currentValue || ''
@@ -2074,7 +2077,7 @@ export default {
         }
 
         const input = this.$el.querySelector(`input[data-edit-cell="${task.id}-${field}"]`)
-        const select = this.$el.querySelector(`select.status-select`)
+        const select = this.$el.querySelector('select.status-select')
 
         if (input) {
           input.focus()
@@ -2142,9 +2145,9 @@ export default {
 
       // 触发值变化事件
       this.$emit('cell-value-change', {
-        taskId: taskId,
-        field: field,
-        newValue: newValue,
+        taskId,
+        field,
+        newValue,
         oldValue: task[field]
       })
 
@@ -2182,28 +2185,28 @@ export default {
 
       try {
         switch (field) {
-          case 'name':
-            return String(value).trim() || null
-          case 'progress':
-            const progress = Number(value)
-            return isNaN(progress) ? null : Math.max(0, Math.min(100, progress))
-          case 'status':
-            // 状态字段验证，允许的状态值
-            const validStatuses = ['Not Started', 'In Progress', 'Completed', 'On Hold']
-            return validStatuses.includes(value) ? value : 'Not Started'
-          case 'assignee':
-            // Assignee字段验证，确保是有效的人员选项
-            const validAssignees = this.assigneeOptions.map(option => option.value)
-            return validAssignees.includes(value) ? value : ''
-          case 'startDate':
-          case 'endDate':
-          case 'planStartDate':
-          case 'planEndDate':
-            // 验证日期格式
-            const date = moment(value)
-            return date.isValid() ? date.format('YYYY-MM-DD') : null
-          default:
-            return String(value)
+        case 'name':
+          return String(value).trim() || null
+        case 'progress':
+          const progress = Number(value)
+          return isNaN(progress) ? null : Math.max(0, Math.min(100, progress))
+        case 'status':
+          // 状态字段验证，允许的状态值
+          const validStatuses = ['Not Started', 'In Progress', 'Completed', 'On Hold']
+          return validStatuses.includes(value) ? value : 'Not Started'
+        case 'assignee':
+          // Assignee字段验证，确保是有效的人员选项
+          const validAssignees = this.assigneeOptions.map(option => option.value)
+          return validAssignees.includes(value) ? value : ''
+        case 'startDate':
+        case 'endDate':
+        case 'planStartDate':
+        case 'planEndDate':
+          // 验证日期格式
+          const date = moment(value)
+          return date.isValid() ? date.format('YYYY-MM-DD') : null
+        default:
+          return String(value)
         }
       } catch (error) {
         console.warn('[单元格验证] 值验证失败:', error)
@@ -2216,24 +2219,24 @@ export default {
       const value = task[field]
 
       switch (field) {
-        case 'progress':
-          return value || 0
-        case 'status':
-          return this.getTaskStatus(task)
-        case 'assignee':
-          return value || ''
-        case 'startDate':
-        case 'endDate':
-        case 'planStartDate':
-        case 'planEndDate':
-          // 对于日期字段，如果存在值且格式正确，直接返回；否则返回空字符串
-          if (value) {
-            const date = moment(value)
-            return date.isValid() ? date.format('YYYY-MM-DD') : ''
-          }
-          return ''
-        default:
-          return value || ''
+      case 'progress':
+        return value || 0
+      case 'status':
+        return this.getTaskStatus(task)
+      case 'assignee':
+        return value || ''
+      case 'startDate':
+      case 'endDate':
+      case 'planStartDate':
+      case 'planEndDate':
+        // 对于日期字段，如果存在值且格式正确，直接返回；否则返回空字符串
+        if (value) {
+          const date = moment(value)
+          return date.isValid() ? date.format('YYYY-MM-DD') : ''
+        }
+        return ''
+      default:
+        return value || ''
       }
     },
 
@@ -2251,14 +2254,14 @@ export default {
     // 处理按键事件
     handleCellKeydown(event) {
       switch (event.key) {
-        case 'Enter':
-          event.preventDefault()
-          this.finishCellEdit()
-          break
-        case 'Escape':
-          event.preventDefault()
-          this.cancelCellEdit()
-          break
+      case 'Enter':
+        event.preventDefault()
+        this.finishCellEdit()
+        break
+      case 'Escape':
+        event.preventDefault()
+        this.cancelCellEdit()
+        break
       }
     },
 
@@ -2285,16 +2288,11 @@ export default {
     handleCellValueChange(taskId, field, value) {
       // 触发值变化事件
       this.$emit('cell-value-change', {
-        taskId: taskId,
-        field: field,
+        taskId,
+        field,
         newValue: value,
         oldValue: this.tasks.find(t => t.id === taskId)?.[field]
       })
-    },
-
-    handleDropdownVisibleChange(visible) {
-      // Add any additional logic you want to execute when dropdown is visible
-      console.log('Dropdown visible:', visible)
     },
 
     // 获取负责人名称
@@ -2324,10 +2322,10 @@ export default {
     },
     // 处理dropdown可见性变化
     handleDropdownVisibleChange(visible, taskId) {
-      console.log('Dropdown visible change:', visible, taskId);
+      console.log('Dropdown visible change:', visible, taskId)
       // 当dropdown显示时，保持hover状态
       if (visible) {
-        this.hoveredTaskNameId = taskId;
+        this.hoveredTaskNameId = taskId
       }
     },
     // 判断操作按钮是否可见
@@ -2338,107 +2336,107 @@ export default {
     // 刷新表格数据
     refreshData() {
       // 强制更新表格数据
-      this.$forceUpdate();
+      this.$forceUpdate()
       // 重新计算虚拟滚动
       this.$nextTick(() => {
         if (this.$refs.tableBody) {
-          this.handleScroll({ target: this.$refs.tableBody });
+          this.handleScroll({ target: this.$refs.tableBody })
         }
-      });
+      })
     },
 
     // 获取任务类型图标
     getTaskTypeIcon(type) {
       switch (type) {
-        case 'milestone':
-          return 'el-icon-star-on';
-        case 'deliverable':
-          return 'el-icon-goods';
-        default:
-          return 'el-icon-document';
+      case 'milestone':
+        return 'el-icon-star-on'
+      case 'deliverable':
+        return 'el-icon-goods'
+      default:
+        return 'el-icon-document'
       }
     },
 
     // 判断是否可以添加子任务
     canAddChild(task) {
       // milestone 不能添加子任务
-      if (task.type === 'milestone') return false;
+      if (task.type === 'milestone') return false
       // deliverable 只能添加 task 类型的子任务
-      if (task.type === 'deliverable') return true;
+      if (task.type === 'deliverable') return true
       // task 可以添加任何类型的子任务
-      return true;
+      return true
     },
 
     // 处理任务操作
     handleTaskAction(payload) {
       // 统一处理不同来源的参数格式
-      let task, action;
+      let task, action
 
       // 处理直接传入的 action 和 task
       if (arguments.length === 2) {
-        action = arguments[0];
-        task = arguments[1];
+        action = arguments[0]
+        task = arguments[1]
       }
       // 处理对象格式的 payload
       else if (payload && typeof payload === 'object') {
         if (payload.task && payload.action) {
-          task = payload.task;
-          action = payload.action;
+          task = payload.task
+          action = payload.action
         } else if (payload.command && payload.task) {
           // 兼容旧的参数格式
-          task = payload.task;
-          action = payload.command;
+          task = payload.task
+          action = payload.command
         }
       }
 
       // 参数验证
       if (!task || !action) {
-        console.warn('处理任务操作: 无效的参数', payload);
-        return;
+        console.warn('处理任务操作: 无效的参数', payload)
+        return
       }
 
-      console.log('处理任务操作:', action, task);
+      console.log('处理任务操作:', action, task)
 
       switch (action) {
-        case 'edit':
-          this.$emit('edit-task', task);
-          break;
-        case 'add-sibling':
-          // 检查父任务是否允许添加同级任务
-          const parentTask = this.findParentTask(task.parentId);
-          if (parentTask && parentTask.type === 'milestone') {
-            this.$message.warning('里程碑类型下不能添加同级任务');
-            return;
-          }
-          this.$emit('add-sibling-task', task);
-          break;
-        case 'add-child':
-          // 检查是否可以添加子任务
-          if (task.type === 'milestone') {
-            this.$message.warning('里程碑类型不能添加子任务');
-            return;
-          }
-          this.$emit('add-child-task', task);
-          break;
-        case 'delete':
-          this.$confirm('确定要删除此任务吗？此操作将同时删除所有子任务。', '确认', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }).then(() => {
-            this.$emit('delete-task', task);
-          }).catch(() => {});
-          break;
-        default:
-          console.warn('未知的任务操作:', action);
+      case 'edit':
+        this.$emit('edit-task', task)
+        break
+      case 'add-sibling':
+        // 检查父任务是否允许添加同级任务
+        const parentTask = this.findParentTask(task.parentId)
+        if (parentTask && parentTask.type === 'milestone') {
+          this.$message.warning('里程碑类型下不能添加同级任务')
+          return
+        }
+        this.$emit('add-sibling-task', task)
+        break
+      case 'add-child':
+        // 检查是否可以添加子任务
+        if (task.type === 'milestone') {
+          this.$message.warning('里程碑类型不能添加子任务')
+          return
+        }
+        this.$emit('add-child-task', task)
+        break
+      case 'delete':
+        this.$confirm('确定要删除此任务吗？此操作将同时删除所有子任务。', '确认', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.$emit('delete-task', task)
+        }).catch(() => {})
+        break
+      default:
+        console.warn('未知的任务操作:', action)
       }
     },
 
     // 查找父任务
     findParentTask(parentId) {
-      if (!parentId) return null;
-      return this.data.find(task => task.id === parentId);
-    },
+      if (!parentId) return null
+      return this.data.find(task => task.id === parentId)
+    }
   }
 }
 </script>

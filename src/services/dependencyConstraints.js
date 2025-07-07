@@ -58,7 +58,7 @@ export class DependencyConstraintEngine {
         taskId: toId,
         type: dep.type || 'FS',
         lag: lagInfo.days,
-        lagInfo: lagInfo,
+        lagInfo,
         dependency: dep
       })
 
@@ -70,85 +70,85 @@ export class DependencyConstraintEngine {
         taskId: fromId,
         type: dep.type || 'FS',
         lag: lagInfo.days,
-        lagInfo: lagInfo,
+        lagInfo,
         dependency: dep
       })
     })
-    console.log(`[依赖约束引擎] 依赖关系图构建完成`)
-    console.log(`[依赖约束引擎] Successors:`, Object.fromEntries(graph.successors))
-    console.log(`[依赖约束引擎] Predecessors:`, Object.fromEntries(graph.predecessors))
+    console.log('[依赖约束引擎] 依赖关系图构建完成')
+    console.log('[依赖约束引擎] Successors:', Object.fromEntries(graph.successors))
+    console.log('[依赖约束引擎] Predecessors:', Object.fromEntries(graph.predecessors))
     return graph
   }
 
   // 检测循环依赖
   detectCyclicDependency() {
-    console.log('[依赖约束引擎] 开始检测循环依赖');
+    console.log('[依赖约束引擎] 开始检测循环依赖')
 
-    const visited = new Set();
-    const recStack = new Set();
-    const cycles = [];
+    const visited = new Set()
+    const recStack = new Set()
+    const cycles = []
 
     // 深度优先搜索检测循环
     const dfs = (taskId, path = []) => {
-      if (!taskId) return false;
+      if (!taskId) return false
 
       // 如果已经在递归栈中，发现循环
       if (recStack.has(taskId)) {
         // 找到循环的起点
-        const cycleStartIndex = path.indexOf(taskId);
+        const cycleStartIndex = path.indexOf(taskId)
         if (cycleStartIndex !== -1) {
           // 提取循环路径
-          const cycle = path.slice(cycleStartIndex).concat(taskId);
-          cycles.push(cycle);
+          const cycle = path.slice(cycleStartIndex).concat(taskId)
+          cycles.push(cycle)
         }
-        return true;
+        return true
       }
 
       // 如果已经访问过且没有循环，跳过
-      if (visited.has(taskId)) return false;
+      if (visited.has(taskId)) return false
 
       // 标记为已访问
-      visited.add(taskId);
-      recStack.add(taskId);
-      path.push(taskId);
+      visited.add(taskId)
+      recStack.add(taskId)
+      path.push(taskId)
 
       // 检查所有后继任务
-      const successors = this.dependencyGraph.successors.get(taskId) || [];
+      const successors = this.dependencyGraph.successors.get(taskId) || []
       for (const successor of successors) {
         if (dfs(successor.taskId, [...path])) {
-          return true;
+          return true
         }
       }
 
       // 回溯，从递归栈中移除
-      recStack.delete(taskId);
-      return false;
-    };
+      recStack.delete(taskId)
+      return false
+    }
 
     // 对所有任务进行检查
     for (const taskId of this.taskMap.keys()) {
       if (!visited.has(taskId)) {
-        dfs(taskId, []);
+        dfs(taskId, [])
       }
     }
 
-    const hasCycle = cycles.length > 0;
+    const hasCycle = cycles.length > 0
     if (hasCycle) {
-      console.warn('[依赖约束引擎] 检测到循环依赖:', cycles);
+      console.warn('[依赖约束引擎] 检测到循环依赖:', cycles)
     } else {
-      console.log('[依赖约束引擎] 未检测到循环依赖');
+      console.log('[依赖约束引擎] 未检测到循环依赖')
     }
 
     return {
       hasCycle,
       cycles
-    };
+    }
   }
 
   // 根据依赖类型和lag计算任务的约束日期
   calculateConstrainedDate(taskId, updates = {}) {
     console.log(`[约束计算] 开始计算任务 ${taskId} 的约束`)
-    console.log(`[约束计算] 使用的更新:`, updates)
+    console.log('[约束计算] 使用的更新:', updates)
 
     const task = this.taskMap.get(taskId)
     if (!task) {
@@ -161,8 +161,8 @@ export class DependencyConstraintEngine {
 
     let earliestStart = null
     let earliestFinish = null
-    let latestStart = null
-    let latestFinish = null
+    const latestStart = null
+    const latestFinish = null
 
     // 约束详情，用于调试和说明
     const constraintDetails = []
@@ -176,7 +176,7 @@ export class DependencyConstraintEngine {
         return
       }
 
-      console.log(`[约束计算] 前导任务详情:`, {
+      console.log('[约束计算] 前导任务详情:', {
         id: predTask.id,
         name: predTask.name,
         startDate: predTask.startDate,
@@ -192,73 +192,73 @@ export class DependencyConstraintEngine {
 
       // 根据依赖类型计算约束
       switch (pred.type) {
-        case 'FS': // Finish-To-Start
-          // 前导任务完成后，加上lag，后续任务才能开始
-          const fsConstraint = predEnd.clone().add(lag, 'days')
-          console.log(`[约束计算] FS约束: ${predEnd.format('YYYY-MM-DD')} + ${lag}天 = ${fsConstraint.format('YYYY-MM-DD')}`)
+      case 'FS': // Finish-To-Start
+        // 前导任务完成后，加上lag，后续任务才能开始
+        const fsConstraint = predEnd.clone().add(lag, 'days')
+        console.log(`[约束计算] FS约束: ${predEnd.format('YYYY-MM-DD')} + ${lag}天 = ${fsConstraint.format('YYYY-MM-DD')}`)
 
-          if (!earliestStart || fsConstraint.isAfter(earliestStart)) {
-            const oldEarliestStart = earliestStart ? earliestStart.format('YYYY-MM-DD') : 'null'
-            earliestStart = fsConstraint
-            console.log(`[约束计算] 更新最早开始时间: ${oldEarliestStart} -> ${earliestStart.format('YYYY-MM-DD')}`)
-          }
-          constraintDetails.push({
-            type: 'FS',
-            fromTask: predTask.name,
-            constraint: 'earliestStart',
-            date: fsConstraint.format('YYYY-MM-DD'),
-            lag: lag,
-            description: `${predTask.name} 完成后 ${lag > 0 ? `+${lag}天` : lag < 0 ? `${lag}天` : ''} 才能开始`
-          })
-          break
+        if (!earliestStart || fsConstraint.isAfter(earliestStart)) {
+          const oldEarliestStart = earliestStart ? earliestStart.format('YYYY-MM-DD') : 'null'
+          earliestStart = fsConstraint
+          console.log(`[约束计算] 更新最早开始时间: ${oldEarliestStart} -> ${earliestStart.format('YYYY-MM-DD')}`)
+        }
+        constraintDetails.push({
+          type: 'FS',
+          fromTask: predTask.name,
+          constraint: 'earliestStart',
+          date: fsConstraint.format('YYYY-MM-DD'),
+          lag,
+          description: `${predTask.name} 完成后 ${lag > 0 ? `+${lag}天` : lag < 0 ? `${lag}天` : ''} 才能开始`
+        })
+        break
 
-        case 'SS': // Start-To-Start
-          // 前导任务开始后，加上lag，后续任务才能开始
-          const ssConstraint = predStart.clone().add(lag, 'days')
-          if (!earliestStart || ssConstraint.isAfter(earliestStart)) {
-            earliestStart = ssConstraint
-          }
-          constraintDetails.push({
-            type: 'SS',
-            fromTask: predTask.name,
-            constraint: 'earliestStart',
-            date: ssConstraint.format('YYYY-MM-DD'),
-            lag: lag,
-            description: `${predTask.name} 开始后 ${lag > 0 ? `+${lag}天` : lag < 0 ? `${lag}天` : ''} 才能开始`
-          })
-          break
+      case 'SS': // Start-To-Start
+        // 前导任务开始后，加上lag，后续任务才能开始
+        const ssConstraint = predStart.clone().add(lag, 'days')
+        if (!earliestStart || ssConstraint.isAfter(earliestStart)) {
+          earliestStart = ssConstraint
+        }
+        constraintDetails.push({
+          type: 'SS',
+          fromTask: predTask.name,
+          constraint: 'earliestStart',
+          date: ssConstraint.format('YYYY-MM-DD'),
+          lag,
+          description: `${predTask.name} 开始后 ${lag > 0 ? `+${lag}天` : lag < 0 ? `${lag}天` : ''} 才能开始`
+        })
+        break
 
-        case 'FF': // Finish-To-Finish
-          // 前导任务完成后，加上lag，后续任务才能完成
-          const ffConstraint = predEnd.clone().add(lag, 'days')
-          if (!earliestFinish || ffConstraint.isAfter(earliestFinish)) {
-            earliestFinish = ffConstraint
-          }
-          constraintDetails.push({
-            type: 'FF',
-            fromTask: predTask.name,
-            constraint: 'earliestFinish',
-            date: ffConstraint.format('YYYY-MM-DD'),
-            lag: lag,
-            description: `${predTask.name} 完成后 ${lag > 0 ? `+${lag}天` : lag < 0 ? `${lag}天` : ''} 才能完成`
-          })
-          break
+      case 'FF': // Finish-To-Finish
+        // 前导任务完成后，加上lag，后续任务才能完成
+        const ffConstraint = predEnd.clone().add(lag, 'days')
+        if (!earliestFinish || ffConstraint.isAfter(earliestFinish)) {
+          earliestFinish = ffConstraint
+        }
+        constraintDetails.push({
+          type: 'FF',
+          fromTask: predTask.name,
+          constraint: 'earliestFinish',
+          date: ffConstraint.format('YYYY-MM-DD'),
+          lag,
+          description: `${predTask.name} 完成后 ${lag > 0 ? `+${lag}天` : lag < 0 ? `${lag}天` : ''} 才能完成`
+        })
+        break
 
-        case 'SF': // Start-To-Finish
-          // 前导任务开始后，加上lag，后续任务才能完成
-          const sfConstraint = predStart.clone().add(lag, 'days')
-          if (!earliestFinish || sfConstraint.isAfter(earliestFinish)) {
-            earliestFinish = sfConstraint
-          }
-          constraintDetails.push({
-            type: 'SF',
-            fromTask: predTask.name,
-            constraint: 'earliestFinish',
-            date: sfConstraint.format('YYYY-MM-DD'),
-            lag: lag,
-            description: `${predTask.name} 开始后 ${lag > 0 ? `+${lag}天` : lag < 0 ? `${lag}天` : ''} 才能完成`
-          })
-          break
+      case 'SF': // Start-To-Finish
+        // 前导任务开始后，加上lag，后续任务才能完成
+        const sfConstraint = predStart.clone().add(lag, 'days')
+        if (!earliestFinish || sfConstraint.isAfter(earliestFinish)) {
+          earliestFinish = sfConstraint
+        }
+        constraintDetails.push({
+          type: 'SF',
+          fromTask: predTask.name,
+          constraint: 'earliestFinish',
+          date: sfConstraint.format('YYYY-MM-DD'),
+          lag,
+          description: `${predTask.name} 开始后 ${lag > 0 ? `+${lag}天` : lag < 0 ? `${lag}天` : ''} 才能完成`
+        })
+        break
       }
     })
 
@@ -270,7 +270,7 @@ export class DependencyConstraintEngine {
         latestStart: latestStart ? latestStart.format('YYYY-MM-DD') : null,
         latestFinish: latestFinish ? latestFinish.format('YYYY-MM-DD') : null
       },
-      constraintDetails: constraintDetails
+      constraintDetails
     }
 
     console.log(`[约束计算] 任务 ${taskId} 的最终约束结果:`, result)
@@ -397,81 +397,81 @@ export class DependencyConstraintEngine {
 
   // 级联更新：当一个任务日期变更时，更新所有受影响的后续任务
   cascadeTaskUpdate(taskId, newStartDate, newEndDate) {
-    const updates = new Map();
+    const updates = new Map()
     const queue = [{
       taskId,
       startDate: newStartDate,
       endDate: newEndDate,
       reason: 'User edit'
-    }];
+    }]
 
-    const processed = new Set();
+    const processed = new Set()
 
     while (queue.length > 0) {
-      const current = queue.shift();
+      const current = queue.shift()
 
       if (processed.has(current.taskId)) {
-        continue;
+        continue
       }
-      processed.add(current.taskId);
+      processed.add(current.taskId)
 
       // 调整当前任务的日期
-      const adjustment = this.adjustTaskDates(current.taskId, current.startDate, current.endDate);
+      const adjustment = this.adjustTaskDates(current.taskId, current.startDate, current.endDate)
       updates.set(current.taskId, {
         ...adjustment,
         reason: current.reason
-      });
+      })
 
-      console.log(`[级联更新] 处理任务 ${current.taskId}, 更新结果:`, adjustment);
+      console.log(`[级联更新] 处理任务 ${current.taskId}, 更新结果:`, adjustment)
 
       // 检查前置任务
-      const predecessors = this.dependencyGraph.predecessors.get(current.taskId) || [];
+      const predecessors = this.dependencyGraph.predecessors.get(current.taskId) || []
       predecessors.forEach(predecessor => {
         if (!processed.has(predecessor.taskId)) {
-          const predecessorTask = this.taskMap.get(predecessor.taskId);
+          const predecessorTask = this.taskMap.get(predecessor.taskId)
           if (predecessorTask) {
             // 计算前置任务的新约束
             const predecessorConstraints = this.calculateConstrainedDate(predecessor.taskId,
               Object.fromEntries(Array.from(updates.entries()).map(([id, data]) => [id, data.adjustedDates]))
-            );
+            )
 
-            console.log(`[级联更新] 前置任务 ${predecessor.taskId} 的约束:`, predecessorConstraints);
+            console.log(`[级联更新] 前置任务 ${predecessor.taskId} 的约束:`, predecessorConstraints)
 
             queue.push({
               taskId: predecessor.taskId,
               startDate: predecessorTask.startDate,
               endDate: predecessorTask.endDate,
               reason: `Cascade from task ${current.taskId} (lag: ${predecessor.lag || 0}d)`
-            });
+            })
           }
         }
-      });
+      })
 
       // 检查后续任务
-      const successors = this.dependencyGraph.successors.get(current.taskId) || [];
+      const successors = this.dependencyGraph.successors.get(current.taskId) || []
       successors.forEach(successor => {
         if (!processed.has(successor.taskId)) {
-          const successorTask = this.taskMap.get(successor.taskId);
+          const successorTask = this.taskMap.get(successor.taskId)
           if (successorTask) {
             // 计算后续任务的新约束
             const successorConstraints = this.calculateConstrainedDate(successor.taskId,
               Object.fromEntries(Array.from(updates.entries()).map(([id, data]) => [id, data.adjustedDates]))
-            );
+            )
 
-            console.log(`[级联更新] 后续任务 ${successor.taskId} 的约束:`, successorConstraints);
+            console.log(`[级联更新] 后续任务 ${successor.taskId} 的约束:`, successorConstraints)
 
             queue.push({
               taskId: successor.taskId,
               startDate: successorTask.startDate,
               endDate: successorTask.endDate,
               reason: `Cascade from task ${current.taskId} (lag: ${successor.lag || 0}d)`
-            });
+            })
           }
         }
-      });
+      })
     }
 
-    return Array.from(updates.values());
+    return Array.from(updates.values())
   }
 
   /**
@@ -504,21 +504,21 @@ export class DependencyConstraintEngine {
 
     // 根据依赖类型计算推荐的lag值
     switch (dependencyType) {
-      case 'FS':
-        recommendedLag = toStart.diff(fromEnd, 'days')
-        if (recommendedLag < 0) {
-          warnings.push(`当前任务时间安排导致负lag: ${recommendedLag}天`)
-        }
-        break
-      case 'SS':
-        recommendedLag = toStart.diff(fromStart, 'days')
-        break
-      case 'FF':
-        recommendedLag = toEnd.diff(fromEnd, 'days')
-        break
-      case 'SF':
-        recommendedLag = toEnd.diff(fromStart, 'days')
-        break
+    case 'FS':
+      recommendedLag = toStart.diff(fromEnd, 'days')
+      if (recommendedLag < 0) {
+        warnings.push(`当前任务时间安排导致负lag: ${recommendedLag}天`)
+      }
+      break
+    case 'SS':
+      recommendedLag = toStart.diff(fromStart, 'days')
+      break
+    case 'FF':
+      recommendedLag = toEnd.diff(fromEnd, 'days')
+      break
+    case 'SF':
+      recommendedLag = toEnd.diff(fromStart, 'days')
+      break
     }
 
     return {
@@ -526,199 +526,199 @@ export class DependencyConstraintEngine {
       max: 999,
       recommended: recommendedLag,
       current: recommendedLag,
-      warnings: warnings
+      warnings
     }
   }
 
   // 检查任务是否需要级联更新
   checkNeedsCascadeUpdate(taskId) {
     // 检查后续依赖
-    const successors = this.dependencyGraph.successors.get(taskId) || [];
+    const successors = this.dependencyGraph.successors.get(taskId) || []
     // 检查前置依赖
-    const predecessors = this.dependencyGraph.predecessors.get(taskId) || [];
+    const predecessors = this.dependencyGraph.predecessors.get(taskId) || []
 
     // 如果有后续依赖或前置依赖，都需要级联更新
-    return successors.length > 0 || predecessors.length > 0;
+    return successors.length > 0 || predecessors.length > 0
   }
 
   // 获取受影响的前置任务列表（级联更新预览）
   getAffectedPredecessorTasksPreview(taskId, newStartDate, newEndDate) {
-    console.log(`[前置任务影响预览] 开始分析任务 ${taskId} 对前置任务的影响`);
-    console.log(`[前置任务影响预览] 新时间范围: ${newStartDate} ~ ${newEndDate}`);
+    console.log(`[前置任务影响预览] 开始分析任务 ${taskId} 对前置任务的影响`)
+    console.log(`[前置任务影响预览] 新时间范围: ${newStartDate} ~ ${newEndDate}`)
 
-    const affectedTasks = [];
+    const affectedTasks = []
     const queue = [{
       taskId,
       startDate: newStartDate,
       endDate: newEndDate,
       reason: 'User edit',
       depth: 0
-    }];
+    }]
 
-    const processed = new Set();
+    const processed = new Set()
     // 记录任务的临时更新状态
-    const tempUpdates = {};
+    const tempUpdates = {}
     tempUpdates[taskId] = {
       startDate: newStartDate,
       endDate: newEndDate
-    };
+    }
 
     while (queue.length > 0) {
-      const current = queue.shift();
+      const current = queue.shift()
 
       if (processed.has(current.taskId) || current.depth > 10) {
-        continue; // 避免循环依赖和过深递归
+        continue // 避免循环依赖和过深递归
       }
-      processed.add(current.taskId);
+      processed.add(current.taskId)
 
       // 更新临时更新状态
       tempUpdates[current.taskId] = {
         startDate: current.startDate,
         endDate: current.endDate
-      };
+      }
 
       // 检查前置任务
-      const predecessors = this.dependencyGraph.predecessors.get(current.taskId) || [];
-      console.log(`[前置任务影响预览] 任务 ${current.taskId} 有 ${predecessors.length} 个前置任务:`, predecessors);
+      const predecessors = this.dependencyGraph.predecessors.get(current.taskId) || []
+      console.log(`[前置任务影响预览] 任务 ${current.taskId} 有 ${predecessors.length} 个前置任务:`, predecessors)
 
       predecessors.forEach((predecessor, index) => {
-        console.log(`[前置任务影响预览] 处理前置任务 ${index + 1}: ${predecessor.taskId}`);
+        console.log(`[前置任务影响预览] 处理前置任务 ${index + 1}: ${predecessor.taskId}`)
 
         if (!processed.has(predecessor.taskId)) {
-          const predecessorTask = this.taskMap.get(predecessor.taskId);
+          const predecessorTask = this.taskMap.get(predecessor.taskId)
           if (predecessorTask) {
-            console.log(`[前置任务影响预览] 找到前置任务详情:`, {
+            console.log('[前置任务影响预览] 找到前置任务详情:', {
               id: predecessorTask.id,
               name: predecessorTask.name,
               currentStart: predecessorTask.startDate,
               currentEnd: predecessorTask.endDate
-            });
+            })
 
             try {
               // 根据依赖类型计算前置任务是否需要调整
-              let needsUpdate = false;
-              let newStart = predecessorTask.startDate;
-              let newEnd = predecessorTask.endDate;
-              const lag = predecessor.lag || 0;
+              let needsUpdate = false
+              let newStart = predecessorTask.startDate
+              let newEnd = predecessorTask.endDate
+              const lag = predecessor.lag || 0
 
               // 获取当前任务的时间
-              const currentTaskStart = moment(current.startDate);
-              const currentTaskEnd = moment(current.endDate);
+              const currentTaskStart = moment(current.startDate)
+              const currentTaskEnd = moment(current.endDate)
 
               // 获取前置任务的时间
-              const predecessorStart = moment(predecessorTask.startDate);
-              const predecessorEnd = moment(predecessorTask.endDate);
+              const predecessorStart = moment(predecessorTask.startDate)
+              const predecessorEnd = moment(predecessorTask.endDate)
 
               switch (predecessor.type) {
-                case 'FS': // Finish-To-Start
-                  // 前置任务结束后，后续任务才能开始
-                  // 如果后续任务开始时间变化，可能需要调整前置任务结束时间
-                  {
-                    // 创建副本以避免修改原始对象
-                    const adjustedTaskStart = moment(current.startDate).subtract(lag, 'days');
+              case 'FS': // Finish-To-Start
+                // 前置任务结束后，后续任务才能开始
+                // 如果后续任务开始时间变化，可能需要调整前置任务结束时间
+                {
+                  // 创建副本以避免修改原始对象
+                  const adjustedTaskStart = moment(current.startDate).subtract(lag, 'days')
 
-                    // 检查是否需要更新前置任务
-                    // 如果后续任务开始时间 - lag 与前置任务结束时间不一致，则需要更新
-                    console.log(`[前置任务影响预览] FS关系比较: 后续任务开始时间(减去lag) ${adjustedTaskStart.format('YYYY-MM-DD')} vs 前置任务结束时间 ${predecessorEnd.format('YYYY-MM-DD')}`);
+                  // 检查是否需要更新前置任务
+                  // 如果后续任务开始时间 - lag 与前置任务结束时间不一致，则需要更新
+                  console.log(`[前置任务影响预览] FS关系比较: 后续任务开始时间(减去lag) ${adjustedTaskStart.format('YYYY-MM-DD')} vs 前置任务结束时间 ${predecessorEnd.format('YYYY-MM-DD')}`)
 
-                    if (!adjustedTaskStart.isSame(predecessorEnd, 'day')) {
-                      console.log(`[前置任务影响预览] FS关系: 后续任务开始时间 ${adjustedTaskStart.format('YYYY-MM-DD')} 与前置任务结束时间 ${predecessorEnd.format('YYYY-MM-DD')} 不一致`);
+                  if (!adjustedTaskStart.isSame(predecessorEnd, 'day')) {
+                    console.log(`[前置任务影响预览] FS关系: 后续任务开始时间 ${adjustedTaskStart.format('YYYY-MM-DD')} 与前置任务结束时间 ${predecessorEnd.format('YYYY-MM-DD')} 不一致`)
 
-                      // 新的结束时间应该是后续任务开始时间减去lag
-                      newEnd = adjustedTaskStart.format('YYYY-MM-DD');
+                    // 新的结束时间应该是后续任务开始时间减去lag
+                    newEnd = adjustedTaskStart.format('YYYY-MM-DD')
 
-                      // 保持任务持续时间不变
-                      const duration = predecessorEnd.diff(predecessorStart, 'days');
-                      newStart = moment(newEnd).subtract(duration, 'days').format('YYYY-MM-DD');
-                      console.log(`[前置任务影响预览] FS关系: 计算新时间范围 ${newStart} ~ ${newEnd}, 持续时间 ${duration} 天`);
-                      needsUpdate = true;
-                    }
+                    // 保持任务持续时间不变
+                    const duration = predecessorEnd.diff(predecessorStart, 'days')
+                    newStart = moment(newEnd).subtract(duration, 'days').format('YYYY-MM-DD')
+                    console.log(`[前置任务影响预览] FS关系: 计算新时间范围 ${newStart} ~ ${newEnd}, 持续时间 ${duration} 天`)
+                    needsUpdate = true
                   }
-                  break;
+                }
+                break
 
-                case 'SS': // Start-To-Start
-                  // 前置任务开始后，后续任务才能开始
-                  // 如果后续任务开始时间变化，可能需要调整前置任务开始时间
-                  {
-                    // 创建副本以避免修改原始对象
-                    const adjustedTaskStart = moment(current.startDate).subtract(lag, 'days');
+              case 'SS': // Start-To-Start
+                // 前置任务开始后，后续任务才能开始
+                // 如果后续任务开始时间变化，可能需要调整前置任务开始时间
+                {
+                  // 创建副本以避免修改原始对象
+                  const adjustedTaskStart = moment(current.startDate).subtract(lag, 'days')
 
-                    // 检查是否需要更新前置任务
-                    // 如果后续任务开始时间 - lag 与前置任务开始时间不一致，则需要更新
-                    console.log(`[前置任务影响预览] SS关系比较: 后续任务开始时间(减去lag) ${adjustedTaskStart.format('YYYY-MM-DD')} vs 前置任务开始时间 ${predecessorStart.format('YYYY-MM-DD')}`);
+                  // 检查是否需要更新前置任务
+                  // 如果后续任务开始时间 - lag 与前置任务开始时间不一致，则需要更新
+                  console.log(`[前置任务影响预览] SS关系比较: 后续任务开始时间(减去lag) ${adjustedTaskStart.format('YYYY-MM-DD')} vs 前置任务开始时间 ${predecessorStart.format('YYYY-MM-DD')}`)
 
-                    if (!adjustedTaskStart.isSame(predecessorStart, 'day')) {
-                      console.log(`[前置任务影响预览] SS关系: 后续任务开始时间 ${adjustedTaskStart.format('YYYY-MM-DD')} 与前置任务开始时间 ${predecessorStart.format('YYYY-MM-DD')} 不一致`);
+                  if (!adjustedTaskStart.isSame(predecessorStart, 'day')) {
+                    console.log(`[前置任务影响预览] SS关系: 后续任务开始时间 ${adjustedTaskStart.format('YYYY-MM-DD')} 与前置任务开始时间 ${predecessorStart.format('YYYY-MM-DD')} 不一致`)
 
-                      // 新的开始时间应该是后续任务开始时间减去lag
-                      newStart = adjustedTaskStart.format('YYYY-MM-DD');
+                    // 新的开始时间应该是后续任务开始时间减去lag
+                    newStart = adjustedTaskStart.format('YYYY-MM-DD')
 
-                      // 保持任务持续时间不变
-                      const duration = predecessorEnd.diff(predecessorStart, 'days');
-                      newEnd = moment(newStart).add(duration, 'days').format('YYYY-MM-DD');
-                      console.log(`[前置任务影响预览] SS关系: 计算新时间范围 ${newStart} ~ ${newEnd}, 持续时间 ${duration} 天`);
-                      needsUpdate = true;
-                    }
+                    // 保持任务持续时间不变
+                    const duration = predecessorEnd.diff(predecessorStart, 'days')
+                    newEnd = moment(newStart).add(duration, 'days').format('YYYY-MM-DD')
+                    console.log(`[前置任务影响预览] SS关系: 计算新时间范围 ${newStart} ~ ${newEnd}, 持续时间 ${duration} 天`)
+                    needsUpdate = true
                   }
-                  break;
+                }
+                break
 
-                case 'FF': // Finish-To-Finish
-                  // 前置任务结束后，后续任务才能结束
-                  // 如果后续任务结束时间变化，可能需要调整前置任务结束时间
-                  {
-                    // 创建副本以避免修改原始对象
-                    const adjustedTaskEnd = moment(current.endDate).subtract(lag, 'days');
+              case 'FF': // Finish-To-Finish
+                // 前置任务结束后，后续任务才能结束
+                // 如果后续任务结束时间变化，可能需要调整前置任务结束时间
+                {
+                  // 创建副本以避免修改原始对象
+                  const adjustedTaskEnd = moment(current.endDate).subtract(lag, 'days')
 
-                    // 检查是否需要更新前置任务
-                    // 如果后续任务结束时间 - lag 与前置任务结束时间不一致，则需要更新
-                    console.log(`[前置任务影响预览] FF关系比较: 后续任务结束时间(减去lag) ${adjustedTaskEnd.format('YYYY-MM-DD')} vs 前置任务结束时间 ${predecessorEnd.format('YYYY-MM-DD')}`);
+                  // 检查是否需要更新前置任务
+                  // 如果后续任务结束时间 - lag 与前置任务结束时间不一致，则需要更新
+                  console.log(`[前置任务影响预览] FF关系比较: 后续任务结束时间(减去lag) ${adjustedTaskEnd.format('YYYY-MM-DD')} vs 前置任务结束时间 ${predecessorEnd.format('YYYY-MM-DD')}`)
 
-                    if (!adjustedTaskEnd.isSame(predecessorEnd, 'day')) {
-                      console.log(`[前置任务影响预览] FF关系: 后续任务结束时间 ${adjustedTaskEnd.format('YYYY-MM-DD')} 与前置任务结束时间 ${predecessorEnd.format('YYYY-MM-DD')} 不一致`);
+                  if (!adjustedTaskEnd.isSame(predecessorEnd, 'day')) {
+                    console.log(`[前置任务影响预览] FF关系: 后续任务结束时间 ${adjustedTaskEnd.format('YYYY-MM-DD')} 与前置任务结束时间 ${predecessorEnd.format('YYYY-MM-DD')} 不一致`)
 
-                      // 新的结束时间应该是后续任务结束时间减去lag
-                      newEnd = adjustedTaskEnd.format('YYYY-MM-DD');
+                    // 新的结束时间应该是后续任务结束时间减去lag
+                    newEnd = adjustedTaskEnd.format('YYYY-MM-DD')
 
-                      // 保持任务持续时间不变
-                      const duration = predecessorEnd.diff(predecessorStart, 'days');
-                      newStart = moment(newEnd).subtract(duration, 'days').format('YYYY-MM-DD');
-                      console.log(`[前置任务影响预览] FF关系: 计算新时间范围 ${newStart} ~ ${newEnd}, 持续时间 ${duration} 天`);
-                      needsUpdate = true;
-                    }
+                    // 保持任务持续时间不变
+                    const duration = predecessorEnd.diff(predecessorStart, 'days')
+                    newStart = moment(newEnd).subtract(duration, 'days').format('YYYY-MM-DD')
+                    console.log(`[前置任务影响预览] FF关系: 计算新时间范围 ${newStart} ~ ${newEnd}, 持续时间 ${duration} 天`)
+                    needsUpdate = true
                   }
-                  break;
+                }
+                break
 
-                case 'SF': // Start-To-Finish
-                  // 前置任务开始后，后续任务才能结束
-                  // 如果后续任务结束时间变化，可能需要调整前置任务开始时间
-                  {
-                    // 创建副本以避免修改原始对象
-                    const adjustedTaskEnd = moment(current.endDate).subtract(lag, 'days');
+              case 'SF': // Start-To-Finish
+                // 前置任务开始后，后续任务才能结束
+                // 如果后续任务结束时间变化，可能需要调整前置任务开始时间
+                {
+                  // 创建副本以避免修改原始对象
+                  const adjustedTaskEnd = moment(current.endDate).subtract(lag, 'days')
 
-                    // 检查是否需要更新前置任务
-                    // 如果后续任务结束时间 - lag 与前置任务开始时间不一致，则需要更新
-                    console.log(`[前置任务影响预览] SF关系比较: 后续任务结束时间(减去lag) ${adjustedTaskEnd.format('YYYY-MM-DD')} vs 前置任务开始时间 ${predecessorStart.format('YYYY-MM-DD')}`);
+                  // 检查是否需要更新前置任务
+                  // 如果后续任务结束时间 - lag 与前置任务开始时间不一致，则需要更新
+                  console.log(`[前置任务影响预览] SF关系比较: 后续任务结束时间(减去lag) ${adjustedTaskEnd.format('YYYY-MM-DD')} vs 前置任务开始时间 ${predecessorStart.format('YYYY-MM-DD')}`)
 
-                    if (!adjustedTaskEnd.isSame(predecessorStart, 'day')) {
-                      console.log(`[前置任务影响预览] SF关系: 后续任务结束时间 ${adjustedTaskEnd.format('YYYY-MM-DD')} 与前置任务开始时间 ${predecessorStart.format('YYYY-MM-DD')} 不一致`);
+                  if (!adjustedTaskEnd.isSame(predecessorStart, 'day')) {
+                    console.log(`[前置任务影响预览] SF关系: 后续任务结束时间 ${adjustedTaskEnd.format('YYYY-MM-DD')} 与前置任务开始时间 ${predecessorStart.format('YYYY-MM-DD')} 不一致`)
 
-                      // 新的开始时间应该是后续任务结束时间减去lag
-                      newStart = adjustedTaskEnd.format('YYYY-MM-DD');
+                    // 新的开始时间应该是后续任务结束时间减去lag
+                    newStart = adjustedTaskEnd.format('YYYY-MM-DD')
 
-                      // 保持任务持续时间不变
-                      const duration = predecessorEnd.diff(predecessorStart, 'days');
-                      newEnd = moment(newStart).add(duration, 'days').format('YYYY-MM-DD');
-                      console.log(`[前置任务影响预览] SF关系: 计算新时间范围 ${newStart} ~ ${newEnd}, 持续时间 ${duration} 天`);
-                      needsUpdate = true;
-                    }
+                    // 保持任务持续时间不变
+                    const duration = predecessorEnd.diff(predecessorStart, 'days')
+                    newEnd = moment(newStart).add(duration, 'days').format('YYYY-MM-DD')
+                    console.log(`[前置任务影响预览] SF关系: 计算新时间范围 ${newStart} ~ ${newEnd}, 持续时间 ${duration} 天`)
+                    needsUpdate = true
                   }
-                  break;
+                }
+                break
 
-                default:
-                  console.warn(`[前置任务影响预览] 未知的依赖类型: ${predecessor.type}`);
+              default:
+                console.warn(`[前置任务影响预览] 未知的依赖类型: ${predecessor.type}`)
               }
 
-              console.log(`[前置任务影响预览] 任务 ${predecessor.taskId} needsUpdate: ${needsUpdate}`);
+              console.log(`[前置任务影响预览] 任务 ${predecessor.taskId} needsUpdate: ${needsUpdate}`)
 
               if (needsUpdate) {
                 const affectedTask = {
@@ -726,16 +726,16 @@ export class DependencyConstraintEngine {
                   taskName: predecessorTask.name,
                   currentStart: predecessorTask.startDate,
                   currentEnd: predecessorTask.endDate,
-                  newStart: newStart,
-                  newEnd: newEnd,
+                  newStart,
+                  newEnd,
                   dependencyType: predecessor.type,
-                  lag: lag,
+                  lag,
                   reason: `${predecessor.type} dependency to "${this.taskMap.get(current.taskId)?.name}" with ${lag}d lag`,
                   depth: current.depth + 1
-                };
+                }
 
-                affectedTasks.push(affectedTask);
-                console.log(`[前置任务影响预览] 添加到受影响列表:`, affectedTask);
+                affectedTasks.push(affectedTask)
+                console.log('[前置任务影响预览] 添加到受影响列表:', affectedTask)
 
                 // 继续检查这个任务的前置任务
                 queue.push({
@@ -744,28 +744,28 @@ export class DependencyConstraintEngine {
                   endDate: newEnd,
                   reason: `Cascade from ${current.taskId}`,
                   depth: current.depth + 1
-                });
+                })
 
                 // 更新临时更新状态
                 tempUpdates[predecessor.taskId] = {
                   startDate: newStart,
                   endDate: newEnd
-                };
+                }
               }
             } catch (error) {
-              console.warn(`[前置任务影响预览] 计算任务 ${predecessor.taskId} 约束失败:`, error);
+              console.warn(`[前置任务影响预览] 计算任务 ${predecessor.taskId} 约束失败:`, error)
             }
           } else {
-            console.warn(`[前置任务影响预览] 未找到前置任务 ${predecessor.taskId} 的详情`);
+            console.warn(`[前置任务影响预览] 未找到前置任务 ${predecessor.taskId} 的详情`)
           }
         } else {
-          console.log(`[前置任务影响预览] 任务 ${predecessor.taskId} 已处理，跳过`);
+          console.log(`[前置任务影响预览] 任务 ${predecessor.taskId} 已处理，跳过`)
         }
-      });
+      })
     }
 
-    console.log(`[前置任务影响预览] 最终受影响前置任务列表:`, affectedTasks);
-    return affectedTasks;
+    console.log('[前置任务影响预览] 最终受影响前置任务列表:', affectedTasks)
+    return affectedTasks
   }
 
   // 获取受影响的任务列表（级联更新预览）
@@ -802,7 +802,7 @@ export class DependencyConstraintEngine {
         if (!processed.has(successor.taskId)) {
           const successorTask = this.taskMap.get(successor.taskId)
           if (successorTask) {
-            console.log(`[受影响任务预览] 找到后续任务详情:`, {
+            console.log('[受影响任务预览] 找到后续任务详情:', {
               id: successorTask.id,
               name: successorTask.name,
               currentStart: successorTask.startDate,
@@ -817,9 +817,9 @@ export class DependencyConstraintEngine {
                 endDate: current.endDate
               }
 
-              console.log(`[受影响任务预览] 使用临时更新计算约束:`, tempUpdates)
+              console.log('[受影响任务预览] 使用临时更新计算约束:', tempUpdates)
               const constraints = this.calculateConstrainedDate(successor.taskId, tempUpdates)
-              console.log(`[受影响任务预览] 计算得到的约束:`, constraints)
+              console.log('[受影响任务预览] 计算得到的约束:', constraints)
 
               // 只有当约束确实影响任务时间时才加入受影响列表
               const currentSuccessorStart = moment(successorTask.startDate)
@@ -827,7 +827,7 @@ export class DependencyConstraintEngine {
               const constrainedStart = constraints.constraints.earliestStart ? moment(constraints.constraints.earliestStart) : null
               const constrainedEnd = constraints.constraints.earliestFinish ? moment(constraints.constraints.earliestFinish) : null
 
-              console.log(`[受影响任务预览] 时间比较:`, {
+              console.log('[受影响任务预览] 时间比较:', {
                 currentStart: currentSuccessorStart.format('YYYY-MM-DD'),
                 currentEnd: currentSuccessorEnd.format('YYYY-MM-DD'),
                 constrainedStart: constrainedStart ? constrainedStart.format('YYYY-MM-DD') : 'null',
@@ -852,7 +852,7 @@ export class DependencyConstraintEngine {
               if (constrainedEnd && constrainedEnd.isAfter(currentSuccessorEnd)) {
                 newEnd = constrainedEnd.format('YYYY-MM-DD')
                 needsUpdate = true
-                console.log(`[受影响任务预览] 需要调整结束时间`)
+                console.log('[受影响任务预览] 需要调整结束时间')
               }
 
               console.log(`[受影响任务预览] 任务 ${successor.taskId} needsUpdate: ${needsUpdate}`)
@@ -863,8 +863,8 @@ export class DependencyConstraintEngine {
                   taskName: successorTask.name,
                   currentStart: successorTask.startDate,
                   currentEnd: successorTask.endDate,
-                  newStart: newStart,
-                  newEnd: newEnd,
+                  newStart,
+                  newEnd,
                   dependencyType: successor.type,
                   lag: successor.lag || 0,
                   reason: `${successor.type} dependency from "${this.taskMap.get(current.taskId)?.name}" with ${successor.lag || 0}d lag`,
@@ -872,7 +872,7 @@ export class DependencyConstraintEngine {
                 }
 
                 affectedTasks.push(affectedTask)
-                console.log(`[受影响任务预览] 添加到受影响列表:`, affectedTask)
+                console.log('[受影响任务预览] 添加到受影响列表:', affectedTask)
 
                 // 继续检查这个任务的后续任务
                 queue.push({
@@ -895,16 +895,16 @@ export class DependencyConstraintEngine {
       })
     }
 
-    console.log(`[受影响任务预览] 最终受影响任务列表:`, affectedTasks)
+    console.log('[受影响任务预览] 最终受影响任务列表:', affectedTasks)
     return affectedTasks
   }
 
   // 执行级联更新并返回更新结果
   executeCascadeUpdate(taskId, newStartDate, newEndDate) {
     // 检测循环依赖
-    const cyclicCheck = this.detectCyclicDependency();
+    const cyclicCheck = this.detectCyclicDependency()
     if (cyclicCheck.hasCycle) {
-      console.warn('[依赖约束引擎] 检测到循环依赖，可能导致无限递归:', cyclicCheck.cycles);
+      console.warn('[依赖约束引擎] 检测到循环依赖，可能导致无限递归:', cyclicCheck.cycles)
       // 对于循环依赖，我们仍然尝试更新，但会限制递归深度
     }
 
@@ -931,106 +931,106 @@ export class DependencyConstraintEngine {
 
   // 检查依赖属性变更是否需要级联更新
   checkDependencyPropertyUpdate(fromId, toId, oldType, newType, oldLag, newLag) {
-    console.log(`[依赖约束引擎] 检查依赖属性变更: ${fromId}->${toId}, 类型: ${oldType}->${newType}, Lag: ${oldLag}->${newLag}`);
+    console.log(`[依赖约束引擎] 检查依赖属性变更: ${fromId}->${toId}, 类型: ${oldType}->${newType}, Lag: ${oldLag}->${newLag}`)
 
-    const fromTask = this.taskMap.get(fromId);
-    const toTask = this.taskMap.get(toId);
+    const fromTask = this.taskMap.get(fromId)
+    const toTask = this.taskMap.get(toId)
 
     if (!fromTask || !toTask) {
-      console.warn('[依赖约束引擎] 无法找到任务:', !fromTask ? fromId : '', !toTask ? toId : '');
-      return { needsUpdate: false, affectedTasks: [] };
+      console.warn('[依赖约束引擎] 无法找到任务:', !fromTask ? fromId : '', !toTask ? toId : '')
+      return { needsUpdate: false, affectedTasks: [] }
     }
 
     // 检查类型变更
-    const typeChanged = oldType !== newType;
+    const typeChanged = oldType !== newType
     // 检查lag变更
-    const lagChanged = oldLag !== newLag;
+    const lagChanged = oldLag !== newLag
 
     if (!typeChanged && !lagChanged) {
-      console.log('[依赖约束引擎] 依赖属性未发生变化');
-      return { needsUpdate: false, affectedTasks: [] };
+      console.log('[依赖约束引擎] 依赖属性未发生变化')
+      return { needsUpdate: false, affectedTasks: [] }
     }
 
     // 获取当前约束下的时间范围
-    const currentConstraints = this.calculateConstrainedDate(toId);
+    const currentConstraints = this.calculateConstrainedDate(toId)
 
     // 临时应用新属性
-    const dependency = this.dependencies.find(d => d.from === fromId && d.to === toId);
+    const dependency = this.dependencies.find(d => d.from === fromId && d.to === toId)
     if (!dependency) {
-      console.warn('[依赖约束引擎] 无法找到依赖关系:', fromId, toId);
-      return { needsUpdate: false, affectedTasks: [] };
+      console.warn('[依赖约束引擎] 无法找到依赖关系:', fromId, toId)
+      return { needsUpdate: false, affectedTasks: [] }
     }
 
     // 备份原始属性
-    const originalType = dependency.type;
-    const originalLag = dependency.lag;
+    const originalType = dependency.type
+    const originalLag = dependency.lag
 
     // 临时应用新属性
-    dependency.type = newType;
-    dependency.lag = newLag;
+    dependency.type = newType
+    dependency.lag = newLag
 
     // 计算新约束下的时间范围
-    const newConstraints = this.calculateConstrainedDate(toId);
+    const newConstraints = this.calculateConstrainedDate(toId)
 
     // 恢复原始属性
-    dependency.type = originalType;
-    dependency.lag = originalLag;
+    dependency.type = originalType
+    dependency.lag = originalLag
 
     // 检查时间范围是否发生变化
-    const startDateChanged = !this.areDatesEqual(currentConstraints.constraints.earliestStart, newConstraints.constraints.earliestStart);
-    const endDateChanged = !this.areDatesEqual(currentConstraints.constraints.earliestFinish, newConstraints.constraints.earliestFinish);
+    const startDateChanged = !this.areDatesEqual(currentConstraints.constraints.earliestStart, newConstraints.constraints.earliestStart)
+    const endDateChanged = !this.areDatesEqual(currentConstraints.constraints.earliestFinish, newConstraints.constraints.earliestFinish)
 
     if (!startDateChanged && !endDateChanged) {
-      console.log('[依赖约束引擎] 依赖属性变更不影响时间范围');
-      return { needsUpdate: false, affectedTasks: [] };
+      console.log('[依赖约束引擎] 依赖属性变更不影响时间范围')
+      return { needsUpdate: false, affectedTasks: [] }
     }
 
     // 收集受影响的任务
-    const affectedTasks = new Set();
-    const processedTasks = new Set(); // 用于防止重复处理
+    const affectedTasks = new Set()
+    const processedTasks = new Set() // 用于防止重复处理
 
     // 递归收集所有受影响的任务
     const collectAffectedTasks = (taskId, isUpstream = false) => {
-      if (processedTasks.has(taskId)) return;
-      processedTasks.add(taskId);
+      if (processedTasks.has(taskId)) return
+      processedTasks.add(taskId)
 
-      const task = this.taskMap.get(taskId);
-      if (!task) return;
+      const task = this.taskMap.get(taskId)
+      if (!task) return
 
-      affectedTasks.add(task);
+      affectedTasks.add(task)
 
       // 收集上游任务
       if (isUpstream) {
-        const predecessors = this.dependencyGraph.predecessors.get(taskId) || [];
+        const predecessors = this.dependencyGraph.predecessors.get(taskId) || []
         predecessors.forEach(pred => {
-          collectAffectedTasks(pred.taskId, true);
-        });
+          collectAffectedTasks(pred.taskId, true)
+        })
       }
 
       // 收集下游任务
-      const successors = this.dependencyGraph.successors.get(taskId) || [];
+      const successors = this.dependencyGraph.successors.get(taskId) || []
       successors.forEach(succ => {
-        collectAffectedTasks(succ.taskId, false);
-      });
-    };
+        collectAffectedTasks(succ.taskId, false)
+      })
+    }
 
     // 从源任务和目标任务开始收集
-    collectAffectedTasks(fromId, true);
-    collectAffectedTasks(toId, false);
+    collectAffectedTasks(fromId, true)
+    collectAffectedTasks(toId, false)
 
     // 转换为数组并按照依赖关系排序
     const sortedAffectedTasks = Array.from(affectedTasks)
       .sort((a, b) => {
         // 检查 a 是否是 b 的前置任务
-        const aSuccessors = this.dependencyGraph.successors.get(a.id) || [];
-        if (aSuccessors.some(s => s.taskId === b.id)) return -1;
+        const aSuccessors = this.dependencyGraph.successors.get(a.id) || []
+        if (aSuccessors.some(s => s.taskId === b.id)) return -1
 
         // 检查 b 是否是 a 的前置任务
-        const bSuccessors = this.dependencyGraph.successors.get(b.id) || [];
-        if (bSuccessors.some(s => s.taskId === a.id)) return 1;
+        const bSuccessors = this.dependencyGraph.successors.get(b.id) || []
+        if (bSuccessors.some(s => s.taskId === a.id)) return 1
 
-        return 0;
-      });
+        return 0
+      })
 
     console.log('[依赖约束引擎] 依赖属性变更影响的任务:', sortedAffectedTasks.map(t => ({
       id: t.id,
@@ -1039,7 +1039,7 @@ export class DependencyConstraintEngine {
         start: t.startDate,
         end: t.endDate
       }
-    })));
+    })))
 
     return {
       needsUpdate: true,
@@ -1054,41 +1054,41 @@ export class DependencyConstraintEngine {
           lag: originalLag
         }
       }
-    };
+    }
   }
 
   // 辅助方法：比较日期是否相等
   areDatesEqual(date1, date2) {
-    if (!date1 || !date2) return date1 === date2;
-    return new Date(date1).getTime() === new Date(date2).getTime();
+    if (!date1 || !date2) return date1 === date2
+    return new Date(date1).getTime() === new Date(date2).getTime()
   }
 
   // 根据依赖关系计算约束
   calculateConstraintByDependency(fromTask, toTask, type, lag) {
-    const fromStart = moment(fromTask.startDate);
-    const fromEnd = moment(fromTask.endDate);
-    const lagDays = parseInt(lag) || 0;
+    const fromStart = moment(fromTask.startDate)
+    const fromEnd = moment(fromTask.endDate)
+    const lagDays = parseInt(lag) || 0
 
-    let earliestStart = null;
-    let earliestFinish = null;
+    let earliestStart = null
+    let earliestFinish = null
 
     switch (type) {
-      case 'FS': // Finish-To-Start
-        // 前导任务完成后，加上lag，后续任务才能开始
-        earliestStart = fromEnd.clone().add(lagDays, 'days');
-        break;
-      case 'SS': // Start-To-Start
-        // 前导任务开始后，加上lag，后续任务才能开始
-        earliestStart = fromStart.clone().add(lagDays, 'days');
-        break;
-      case 'FF': // Finish-To-Finish
-        // 前导任务完成后，加上lag，后续任务才能完成
-        earliestFinish = fromEnd.clone().add(lagDays, 'days');
-        break;
-      case 'SF': // Start-To-Finish
-        // 前导任务开始后，加上lag，后续任务才能完成
-        earliestFinish = fromStart.clone().add(lagDays, 'days');
-        break;
+    case 'FS': // Finish-To-Start
+      // 前导任务完成后，加上lag，后续任务才能开始
+      earliestStart = fromEnd.clone().add(lagDays, 'days')
+      break
+    case 'SS': // Start-To-Start
+      // 前导任务开始后，加上lag，后续任务才能开始
+      earliestStart = fromStart.clone().add(lagDays, 'days')
+      break
+    case 'FF': // Finish-To-Finish
+      // 前导任务完成后，加上lag，后续任务才能完成
+      earliestFinish = fromEnd.clone().add(lagDays, 'days')
+      break
+    case 'SF': // Start-To-Finish
+      // 前导任务开始后，加上lag，后续任务才能完成
+      earliestFinish = fromStart.clone().add(lagDays, 'days')
+      break
     }
 
     return {
@@ -1096,19 +1096,19 @@ export class DependencyConstraintEngine {
       earliestFinish: earliestFinish ? earliestFinish.format('YYYY-MM-DD') : null,
       type,
       lag: lagDays
-    };
+    }
   }
 
   applyUpdates(updates) {
     updates.forEach(update => {
-      const task = this.tasks.find(t => t.id === update.taskId);
+      const task = this.tasks.find(t => t.id === update.taskId)
       if (task) {
-        task.startDate = update.newStart;
-        task.endDate = update.newEnd;
+        task.startDate = update.newStart
+        task.endDate = update.newEnd
         // 触发任务更新事件或其他必要的操作
-        this.$emit('task-updated', task);
+        this.$emit('task-updated', task)
       }
-    });
+    })
   }
 }
 

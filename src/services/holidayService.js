@@ -77,7 +77,7 @@ class HolidayService {
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         signal: controller.signal
       })
@@ -135,7 +135,7 @@ class HolidayService {
 
       throw new Error('备用API返回数据格式不正确')
     } catch (error) {
-      console.warn(`备用API也失败，使用本地默认数据:`, error)
+      console.warn('备用API也失败，使用本地默认数据:', error)
       throw error
     }
   }

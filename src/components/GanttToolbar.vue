@@ -281,15 +281,15 @@ export default {
     // 处理View命令
     handleViewCommand(command) {
       switch (command) {
-        case 'expand-all':
-          this.$emit('expand-all')
-          break
-        case 'collapse-all':
-          this.$emit('collapse-all')
-          break
-        case 'critical-path':
-          this.$emit('toggle-critical-path')
-          break
+      case 'expand-all':
+        this.$emit('expand-all')
+        break
+      case 'collapse-all':
+        this.$emit('collapse-all')
+        break
+      case 'critical-path':
+        this.$emit('toggle-critical-path')
+        break
       }
     },
 
@@ -457,7 +457,7 @@ export default {
       })
     },
 
-                // 导航时间轴 - 基于当前可视范围的日期时间做prev和next
+    // 导航时间轴 - 基于当前可视范围的日期时间做prev和next
     navigateTimeline(direction) {
       if (!this.localDateRange || this.localDateRange.length !== 2 ||
           !this.localDateRange[0] || !this.localDateRange[1]) {
@@ -544,24 +544,24 @@ export default {
     // 处理数据操作
     handleDataOperation(command) {
       switch (command) {
-        // 删除生成测试数据相关case
-        // case 'generate-data':
-        //   this.generateLargeDataset(100)
-        //   this.$message.success('测试数据已生成')
-        //   break
-        // case 'generate-400-blue':
-        //   this.generate400BlueDataset()
-        //   this.$message.success('400条蓝色测试数据已生成')
-        //   break
-        case 'export-data':
-          this.exportData()
-          break
-        case 'import-data':
-          this.importData()
-          break
-        case 'clear-data':
-          this.clearAllData()
-          break
+      // 删除生成测试数据相关case
+      // case 'generate-data':
+      //   this.generateLargeDataset(100)
+      //   this.$message.success('测试数据已生成')
+      //   break
+      // case 'generate-400-blue':
+      //   this.generate400BlueDataset()
+      //   this.$message.success('400条蓝色测试数据已生成')
+      //   break
+      case 'export-data':
+        this.exportData()
+        break
+      case 'import-data':
+        this.importData()
+        break
+      case 'clear-data':
+        this.clearAllData()
+        break
       }
     },
 
@@ -616,7 +616,7 @@ export default {
       })
     },
 
-        // 导航季度
+    // 导航季度
     navigateQuarter(direction) {
       const multiplier = direction === 'next' ? 1 : -1
       const currentYear = moment().year()

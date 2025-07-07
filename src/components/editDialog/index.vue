@@ -24,7 +24,7 @@
           <el-form-item>
             <div class="form-item-row">
               <div class="icon-section">
-                <icon-component name="text"></icon-component>
+                <IconComponent name="text"></IconComponent>
               </div>
               <el-input
                 v-model="localForm.title"
@@ -38,7 +38,7 @@
           <el-form-item>
             <div class="form-item-row">
               <div class="icon-section">
-                <icon-component name="user"></icon-component>
+                <IconComponent name="user"></IconComponent>
               </div>
               <div class="assignee-content">
                 <el-select
@@ -61,7 +61,7 @@
           <el-form-item>
             <div class="form-item-row">
               <div class="icon-section">
-                <icon-component name="date"></icon-component>
+                <IconComponent name="date"></IconComponent>
               </div>
               <div class="date-progress-content">
                 <div class="date-section">
@@ -105,7 +105,7 @@
           <el-form-item>
             <div class="form-item-row">
               <div class="icon-section">
-                <icon-component name="tag"></icon-component>
+                <IconComponent name="tag"></IconComponent>
               </div>
               <el-select
               :append-to-body="true"
@@ -128,7 +128,7 @@
           <el-form-item>
             <div class="form-item-row">
               <div class="icon-section">
-                <icon-component name="attachment"></icon-component>
+                <IconComponent name="attachment"></IconComponent>
               </div>
               <div class="attachment-content">
                 <el-upload
@@ -146,7 +146,7 @@
           <el-form-item>
             <div class="form-item-row">
               <div class="icon-section">
-                <icon-component name="link"></icon-component>
+                <IconComponent name="link"></IconComponent>
               </div>
               <div class="links-content">
                 <div class="links-list" v-if="localForm.links.length > 0">
@@ -177,7 +177,7 @@
         <!-- Parent task -->
         <div class="task-group" v-if="currentParentTask">
           <div class="task-group-header">
-            <icon-component name="parent"></icon-component>
+            <IconComponent name="parent"></IconComponent>
             <span class="group-title">Parent</span>
           </div>
           <div class="parent-task">
@@ -200,7 +200,7 @@
         <!-- Children tasks -->
         <div class="task-group" v-if="shouldShowChildrenInfo && currentChildrenTasks && currentChildrenTasks.length > 0">
           <div class="task-group-header">
-            <icon-component name="children"></icon-component>
+            <IconComponent name="children"></IconComponent>
             <span class="group-title">{{ getChildrenSectionTitle() }}</span>
           </div>
           <div class="children-tasks">
@@ -224,7 +224,7 @@
         <!-- Sibling tasks -->
         <div class="task-group" v-if="mode === 'add-sibling' && currentSiblingTasks && currentSiblingTasks.length > 0">
           <div class="task-group-header">
-            <icon-component name="children"></icon-component>
+            <IconComponent name="children"></IconComponent>
             <span class="group-title">Sibling Tasks ({{ currentSiblingTasks.length }})</span>
           </div>
           <div class="sibling-tasks">
@@ -294,7 +294,7 @@ export default {
     type: {
       type: String,
       default: 'task',
-      validator: function(value) {
+      validator(value) {
         return ['task', 'milestone', 'deliverable'].includes(value)
       }
     },
@@ -302,7 +302,7 @@ export default {
     mode: {
       type: String,
       default: 'add',
-      validator: function(value) {
+      validator(value) {
         return ['add', 'edit', 'add-sibling', 'add-child'].includes(value)
       }
     },
@@ -377,24 +377,24 @@ export default {
     // 对话框标题
     dialogTitle() {
       // 根据模式和类型生成标题
-      let action = 'Create';
+      let action = 'Create'
       if (this.mode === 'edit') {
-        action = 'Edit';
+        action = 'Edit'
       } else if (this.mode === 'add-sibling') {
-        action = 'Create';
+        action = 'Create'
       } else if (this.mode === 'add-child') {
-        action = 'Create';
+        action = 'Create'
       }
 
       // 根据类型生成任务类型名称
-      let typeName = 'Task';
+      let typeName = 'Task'
       if (this.type === 'milestone') {
-        typeName = 'Milestone';
+        typeName = 'Milestone'
       } else if (this.type === 'deliverable') {
-        typeName = 'Deliverable';
+        typeName = 'Deliverable'
       }
 
-      return `${action} ${typeName}`;
+      return `${action} ${typeName}`
     },
 
     // 工作天数
@@ -405,7 +405,7 @@ export default {
       return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1
     },
 
-        currentParentTask() {
+    currentParentTask() {
       // 在add-child模式下，父任务就是当前选中的任务（要为其添加子任务）
       if (this.mode === 'add-child') {
         return this.parentTask || null
@@ -476,7 +476,7 @@ export default {
         // 备用：从ganttData中递归查找
         if (this.ganttData && this.ganttData.length > 0) {
           const findChildren = (tasks, parentId) => {
-            let children = []
+            const children = []
             for (const task of tasks) {
               if (task.id === parentId && task.children) {
                 return task.children
@@ -504,7 +504,7 @@ export default {
         // 备用：从ganttData中递归查找
         if (this.ganttData && this.ganttData.length > 0) {
           const findChildren = (tasks, parentId) => {
-            let children = []
+            const children = []
             for (const task of tasks) {
               if (task.id === parentId && task.children) {
                 return task.children
@@ -665,10 +665,10 @@ export default {
           endDate: this.task.endDate || '',
           assignee: this.task.assignee || '',
           id: this.task.id
-        };
+        }
       } else {
         // 新建模式下，使用默认值
-        const today = moment().format('YYYY-MM-DD');
+        const today = moment().format('YYYY-MM-DD')
         this.localForm = {
           id: '',
           title: '',
@@ -678,12 +678,12 @@ export default {
           progress: 0,
           status: 'Not Started',
           links: []
-        };
+        }
       }
 
       // 如果是milestone类型，确保开始日期等于结束日期
       if (this.type === 'milestone') {
-        this.localForm.endDate = this.localForm.startDate;
+        this.localForm.endDate = this.localForm.startDate
       }
     },
 
@@ -726,7 +726,7 @@ export default {
     async handleSave() {
       // 验证必填字段
       if (!this.validateForm()) {
-        return;
+        return
       }
 
       try {
@@ -746,7 +746,7 @@ export default {
           mode: this.mode,
           children: this.localForm.children || [],
           childrenTasks: this.currentChildrenTasks || []
-        };
+        }
 
         // 根据模式选择不同的保存逻辑
         if (this.mode === 'edit') {
@@ -754,28 +754,28 @@ export default {
           await this.$store.dispatch('updateGanttItem', {
             id: taskData.id,
             updates: taskData
-          });
-          this.$emit('task-updated', taskData);
+          })
+          this.$emit('task-updated', taskData)
         } else {
           // 添加模式：新建任务
           await this.$store.dispatch('addNewTask', {
             task: taskData,
             parentId: taskData.parentId
-          });
-          this.$emit('task-added', taskData);
+          })
+          this.$emit('task-added', taskData)
         }
 
         // 更新 localStorage
-        this.updateLocalStorage(taskData);
+        this.updateLocalStorage(taskData)
 
         // 关闭对话框
-        this.closeDialog();
+        this.closeDialog()
 
         // 显示成功提示
-        this.$message.success('Task saved successfully');
+        this.$message.success('Task saved successfully')
       } catch (error) {
-        console.error('保存任务失败:', error);
-        this.$message.error('Failed to save task');
+        console.error('保存任务失败:', error)
+        this.$message.error('Failed to save task')
       }
     },
 
@@ -785,37 +785,37 @@ export default {
     updateLocalStorage(taskData) {
       try {
         // 从 localStorage 获取数据，确保是一个有效的对象
-        let storedData = localStorage.getItem('ganttData');
-        let parsedData;
+        const storedData = localStorage.getItem('ganttData')
+        let parsedData
 
         try {
-          parsedData = JSON.parse(storedData) || { tasks: [], dependencies: [] };
+          parsedData = JSON.parse(storedData) || { tasks: [], dependencies: [] }
         } catch (e) {
-          console.warn('解析 localStorage 数据失败，使用默认空数据');
-          parsedData = { tasks: [], dependencies: [] };
+          console.warn('解析 localStorage 数据失败，使用默认空数据')
+          parsedData = { tasks: [], dependencies: [] }
         }
 
         // 确保 tasks 是一个数组
         if (!Array.isArray(parsedData.tasks)) {
-          parsedData.tasks = [];
+          parsedData.tasks = []
         }
 
         // 根据模式更新任务数据
         if (this.mode === 'edit') {
-          const index = parsedData.tasks.findIndex(item => item.id === taskData.id);
+          const index = parsedData.tasks.findIndex(item => item.id === taskData.id)
           if (index !== -1) {
-            parsedData.tasks[index] = { ...parsedData.tasks[index], ...taskData };
+            parsedData.tasks[index] = { ...parsedData.tasks[index], ...taskData }
           }
         } else {
-          parsedData.tasks.push(taskData);
+          parsedData.tasks.push(taskData)
         }
 
         // 保存回 localStorage
-        localStorage.setItem('ganttData', JSON.stringify(parsedData));
+        localStorage.setItem('ganttData', JSON.stringify(parsedData))
       } catch (error) {
-        console.error('更新 localStorage 失败:', error);
+        console.error('更新 localStorage 失败:', error)
         // 显示错误提示
-        this.$message.error('保存到本地存储失败，请检查浏览器存储空间');
+        this.$message.error('保存到本地存储失败，请检查浏览器存储空间')
       }
     },
 
@@ -824,18 +824,18 @@ export default {
      */
     validateForm() {
       if (!this.localForm.title) {
-        this.$message.warning('Please enter a title');
-        return false;
+        this.$message.warning('Please enter a title')
+        return false
       }
       if (!this.localForm.startDate || !this.localForm.endDate) {
-        this.$message.warning('Please select both start and end dates');
-        return false;
+        this.$message.warning('Please select both start and end dates')
+        return false
       }
       if (moment(this.localForm.startDate).isAfter(this.localForm.endDate)) {
-        this.$message.warning('Start date cannot be later than end date');
-        return false;
+        this.$message.warning('Start date cannot be later than end date')
+        return false
       }
-      return true;
+      return true
     },
 
     handleClose(done) {
@@ -893,12 +893,12 @@ export default {
             url: 'https://example.com/reference'
           }
         ]
-      };
+      }
 
       // 填入模板数据
-      Object.assign(this.localForm, templateData);
+      Object.assign(this.localForm, templateData)
 
-      this.$message.success('Template data imported successfully');
+      this.$message.success('Template data imported successfully')
     },
     handleStartDateChange(date) {
       if (!date) return
@@ -931,31 +931,31 @@ export default {
       }
     },
     getTaskStatusValue(task) {
-      if (!task) return 'not-started';
-      return task.status || (task.progress >= 100 ? 'completed' : task.progress > 0 ? 'in-progress' : 'not-started');
+      if (!task) return 'not-started'
+      return task.status || (task.progress >= 100 ? 'completed' : task.progress > 0 ? 'in-progress' : 'not-started')
     },
     // 获取任务类型图标
     getTaskTypeIcon(type) {
       switch (type) {
-        case 'milestone':
-          return 'el-icon-star-on';
-        case 'deliverable':
-          return 'el-icon-goods';
-        default:
-          return 'el-icon-document';
+      case 'milestone':
+        return 'el-icon-star-on'
+      case 'deliverable':
+        return 'el-icon-goods'
+      default:
+        return 'el-icon-document'
       }
     },
     // 获取任务状态样式类
     getTaskStatusClass(status) {
       switch (status) {
-        case 'completed':
-          return 'success';
-        case 'in-progress':
-          return 'warning';
-        case 'delayed':
-          return 'danger';
-        default:
-          return 'info';
+      case 'completed':
+        return 'success'
+      case 'in-progress':
+        return 'warning'
+      case 'delayed':
+        return 'danger'
+      default:
+        return 'info'
       }
     },
     /**
@@ -968,7 +968,7 @@ export default {
         return `Existing Children (${this.currentChildrenTasks.length})`
       }
       return `Children (${this.currentChildrenTasks.length})`
-    },
+    }
 
 
   }

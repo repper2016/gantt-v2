@@ -176,7 +176,7 @@ export default {
       linkParentChildDates: false,        // 父子节点时间是否关联，默认不关联（独立编辑）
 
       // === 表格宽度配置 ===
-      tableWidth: 800,                   // 表格初始宽度(px)，支持列宽拖拽调整和单元格内联编辑
+      tableWidth: 800                   // 表格初始宽度(px)，支持列宽拖拽调整和单元格内联编辑
     }
   },
   computed: {
@@ -289,43 +289,43 @@ export default {
     },
     // 处理依赖关系更新后刷新甘特图
     async refreshChart(event) {
-      console.log('[GanttView] 开始刷新甘特图', event);
+      console.log('[GanttView] 开始刷新甘特图', event)
       try {
         // 1. 重新初始化依赖约束引擎
-        await this.$store.dispatch('initDependencyEngine');
-        console.log('[GanttView] 依赖约束引擎已重新初始化');
+        await this.$store.dispatch('initDependencyEngine')
+        console.log('[GanttView] 依赖约束引擎已重新初始化')
 
         // 2. 等待依赖约束引擎初始化完成
-        await this.$nextTick();
+        await this.$nextTick()
 
         // 3. 调用 GanttChart 组件的 refreshChart 方法
         if (this.$refs.ganttChart) {
-          await this.$refs.ganttChart.refreshChart(event);
-          console.log('[GanttView] GanttChart 组件刷新完成');
+          await this.$refs.ganttChart.refreshChart(event)
+          console.log('[GanttView] GanttChart 组件刷新完成')
         }
 
         // 4. 等待 DOM 更新
-        await this.$nextTick();
-        console.log('[GanttView] DOM 更新完成');
+        await this.$nextTick()
+        console.log('[GanttView] DOM 更新完成')
 
         // 5. 强制更新当前组件
-        this.$forceUpdate();
-        console.log('[GanttView] 当前组件已强制更新');
+        this.$forceUpdate()
+        console.log('[GanttView] 当前组件已强制更新')
 
         // 6. 等待组件更新完成
-        await this.$nextTick();
+        await this.$nextTick()
 
         // 7. 再次调用 GanttChart 组件的 refreshChart 方法
         if (this.$refs.ganttChart) {
-          await this.$refs.ganttChart.refreshChart(event);
-          console.log('[GanttView] GanttChart 组件二次刷新完成');
+          await this.$refs.ganttChart.refreshChart(event)
+          console.log('[GanttView] GanttChart 组件二次刷新完成')
         }
 
         // 8. 等待 DOM 更新
-        await this.$nextTick();
-        console.log('[GanttView] 刷新完成');
+        await this.$nextTick()
+        console.log('[GanttView] 刷新完成')
       } catch (error) {
-        console.error('[GanttView] 刷新失败:', error);
+        console.error('[GanttView] 刷新失败:', error)
       }
     }
   }

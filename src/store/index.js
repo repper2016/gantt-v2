@@ -136,7 +136,7 @@ export default new Vuex.Store({
                 // 如果同时更新了两个日期但顺序错误，保持原有的正确日期
                 else {
                   // 抛出错误，阻止错误的更新
-                  throw new Error(`开始时间不能晚于结束时间`)
+                  throw new Error('开始时间不能晚于结束时间')
                 }
               }
             }
@@ -154,7 +154,7 @@ export default new Vuex.Store({
                 } else if (updates.planEndDate && !updates.planStartDate) {
                   updates.planStartDate = updates.planEndDate
                 } else {
-                  throw new Error(`计划开始时间不能晚于计划结束时间`)
+                  throw new Error('计划开始时间不能晚于计划结束时间')
                 }
               }
             }
@@ -174,7 +174,7 @@ export default new Vuex.Store({
               parentId: updates.parentId !== undefined ? updates.parentId : task.parentId,
               childrenTasks: updates.childrenTasks || task.childrenTasks || [],
               type: updates.type || task.type || 'task'
-            };
+            }
 
             Object.assign(task, finalUpdates)
 
@@ -430,61 +430,61 @@ export default new Vuex.Store({
     },
     // 批量更新依赖关系属性
     UPDATE_DEPENDENCY_FULL(state, { from, to, updates }) {
-      console.log('[Store] 开始更新依赖关系:', { from, to, updates });
+      console.log('[Store] 开始更新依赖关系:', { from, to, updates })
 
       // 1. 查找依赖关系
       const dependencyIndex = state.dependencies.findIndex(dep =>
         dep.from === from && dep.to === to
-      );
+      )
 
       if (dependencyIndex !== -1) {
         // 2. 获取原始依赖关系
-        const oldDependency = state.dependencies[dependencyIndex];
-        const oldState = { ...oldDependency };
+        const oldDependency = state.dependencies[dependencyIndex]
+        const oldState = { ...oldDependency }
 
         // 3. 创建新的依赖关系对象
-        const newDependency = { ...oldDependency };
+        const newDependency = { ...oldDependency }
 
         // 4. 更新允许的字段
-        const allowedFields = ['color', 'type', 'lag', 'label'];
-        let hasUpdates = false;
+        const allowedFields = ['color', 'type', 'lag', 'label']
+        let hasUpdates = false
 
         allowedFields.forEach(field => {
           if (updates.hasOwnProperty(field)) {
-            let value = updates[field];
+            let value = updates[field]
 
             // 字段验证
             if (field === 'type' && !isValidDependencyType(value)) {
-              console.warn(`[Store] 无效的依赖类型: ${value}`);
-              return;
+              console.warn(`[Store] 无效的依赖类型: ${value}`)
+              return
             }
             if (field === 'lag') {
-              value = parseInt(value) || 0;
+              value = parseInt(value) || 0
               value = Math.max(
                 DEPENDENCY_CALCULATION_CONFIG.lagRange.min,
                 Math.min(DEPENDENCY_CALCULATION_CONFIG.lagRange.max, value)
-              );
+              )
             }
 
             // 使用Vue.set更新单个字段以确保响应式
-            Vue.set(newDependency, field, value);
-            hasUpdates = true;
+            Vue.set(newDependency, field, value)
+            hasUpdates = true
           }
-        });
+        })
 
         if (hasUpdates) {
-          console.log('[Store] 依赖关系更新前:', oldState);
-          console.log('[Store] 依赖关系更新后:', newDependency);
+          console.log('[Store] 依赖关系更新前:', oldState)
+          console.log('[Store] 依赖关系更新后:', newDependency)
 
           // 5. 使用Vue.set更新整个依赖关系对象
-          Vue.set(state.dependencies, dependencyIndex, newDependency);
+          Vue.set(state.dependencies, dependencyIndex, newDependency)
 
           // 6. 强制更新依赖关系数组以触发响应式
-          state.dependencies = [...state.dependencies];
+          state.dependencies = [...state.dependencies]
 
           // 7. 重新初始化依赖约束引擎
           Vue.nextTick(() => {
-            state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies);
+            state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies)
 
             // 8. 触发全局事件
             window.dispatchEvent(new CustomEvent('dependency-updated', {
@@ -494,23 +494,23 @@ export default new Vuex.Store({
                 updates: newDependency,
                 source: 'UPDATE_DEPENDENCY_FULL'
               }
-            }));
+            }))
 
             // 9. 保存到 localStorage
             try {
               localStorage.setItem('ganttData', JSON.stringify({
                 tasks: state.ganttData,
                 dependencies: state.dependencies
-              }));
+              }))
             } catch (error) {
-              console.error('[Store] 保存到 localStorage 失败:', error);
+              console.error('[Store] 保存到 localStorage 失败:', error)
             }
-          });
+          })
         } else {
-          console.log('[Store] 无有效更新');
+          console.log('[Store] 无有效更新')
         }
       } else {
-        console.warn(`[Store] 未找到依赖关系: ${from} -> ${to}`);
+        console.warn(`[Store] 未找到依赖关系: ${from} -> ${to}`)
       }
     },
     // 任务管理
@@ -870,17 +870,17 @@ export default new Vuex.Store({
       // 4. 父任务类型规则
       if (parentType) {
         switch (parentType) {
-          case 'milestone':
-            throw new Error('Milestone类型不能添加子任务')
-          case 'deliverable':
-          case 'task':
-            // Deliverable和Task类型可以添加子任务，但子任务只能是Task类型
-            if (taskType !== 'task') {
-              throw new Error(`${parentType}类型只能添加Task类型的子任务`)
-            }
-            break
-          default:
-            throw new Error(`未知的父任务类型: ${parentType}`)
+        case 'milestone':
+          throw new Error('Milestone类型不能添加子任务')
+        case 'deliverable':
+        case 'task':
+          // Deliverable和Task类型可以添加子任务，但子任务只能是Task类型
+          if (taskType !== 'task') {
+            throw new Error(`${parentType}类型只能添加Task类型的子任务`)
+          }
+          break
+        default:
+          throw new Error(`未知的父任务类型: ${parentType}`)
         }
       }
     },
@@ -897,22 +897,22 @@ export default new Vuex.Store({
 
     // 设置依赖关系数组
     SET_DEPENDENCIES(state, dependencies) {
-      console.log('[Store] 开始更新依赖关系数组');
+      console.log('[Store] 开始更新依赖关系数组')
       // 1. 更新依赖关系数组
-      state.dependencies = dependencies || [];
-      console.log('[Store] 依赖关系数组已更新:', state.dependencies.length);
+      state.dependencies = dependencies || []
+      console.log('[Store] 依赖关系数组已更新:', state.dependencies.length)
 
       // 2. 更新依赖约束引擎
       try {
         if (state.dependencyEngine) {
-          state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies);
-          console.log('[Store] 依赖约束引擎已更新');
+          state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies)
+          console.log('[Store] 依赖约束引擎已更新')
         } else {
-          state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies);
-          console.log('[Store] 依赖约束引擎已初始化');
+          state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies)
+          console.log('[Store] 依赖约束引擎已初始化')
         }
       } catch (error) {
-        console.error('[Store] 更新依赖约束引擎失败:', error);
+        console.error('[Store] 更新依赖约束引擎失败:', error)
       }
 
       // 3. 触发视图更新
@@ -920,21 +920,21 @@ export default new Vuex.Store({
         try {
           // 强制更新依赖关系相关的计算属性
           if (state.highlightedConnections.isHighlightMode) {
-            const sourceTaskId = state.highlightedConnections.sourceTaskId;
+            const {sourceTaskId} = state.highlightedConnections
             if (sourceTaskId) {
               // 重新计算高亮状态
               const relatedDeps = state.dependencies.filter(dep =>
                 dep.from === sourceTaskId || dep.to === sourceTaskId
-              );
-              state.highlightedConnections.relatedDependencies = relatedDeps;
-              console.log('[Store] 已更新高亮依赖关系:', relatedDeps.length);
+              )
+              state.highlightedConnections.relatedDependencies = relatedDeps
+              console.log('[Store] 已更新高亮依赖关系:', relatedDeps.length)
             }
           }
         } catch (error) {
-          console.error('[Store] 更新高亮状态失败:', error);
+          console.error('[Store] 更新高亮状态失败:', error)
         }
-      });
-      console.log('[Store] 依赖关系更新完成');
+      })
+      console.log('[Store] 依赖关系更新完成')
     },
 
     // 规范化milestone任务：确保开始和结束日期相同，进度为100%
@@ -979,89 +979,89 @@ export default new Vuex.Store({
 
     // 初始化依赖约束引擎
     INIT_DEPENDENCY_ENGINE(state) {
-      console.log('[Store] 开始初始化依赖约束引擎');
+      console.log('[Store] 开始初始化依赖约束引擎')
 
       // 1. 初始化依赖约束引擎
-      state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies);
+      state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies)
 
       // 2. 触发全局事件
       window.dispatchEvent(new CustomEvent('dependency-updated', {
         detail: { source: 'INIT_DEPENDENCY_ENGINE' }
-      }));
+      }))
 
-      console.log('[Store] 依赖约束引擎初始化完成');
+      console.log('[Store] 依赖约束引擎初始化完成')
     },
 
     // 更新依赖约束引擎
     UPDATE_DEPENDENCY_ENGINE(state) {
-      console.log('[Store] 开始更新依赖约束引擎');
+      console.log('[Store] 开始更新依赖约束引擎')
 
       // 1. 更新依赖约束引擎
-      state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies);
-      console.log('[Store] 依赖约束引擎已更新');
+      state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies)
+      console.log('[Store] 依赖约束引擎已更新')
 
       // 2. 强制更新依赖关系数组，触发响应式更新
-      state.dependencies = [...state.dependencies];
-      console.log('[Store] 依赖关系数组已更新');
+      state.dependencies = [...state.dependencies]
+      console.log('[Store] 依赖关系数组已更新')
 
       // 3. 确保视图更新
       Vue.nextTick(() => {
         // 4. 再次更新依赖约束引擎
-        state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies);
-        console.log('[Store] 依赖约束引擎已二次更新');
+        state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies)
+        console.log('[Store] 依赖约束引擎已二次更新')
 
         // 5. 再次强制更新依赖关系数组
-        state.dependencies = [...state.dependencies];
-        console.log('[Store] 依赖关系数组已二次更新');
+        state.dependencies = [...state.dependencies]
+        console.log('[Store] 依赖关系数组已二次更新')
 
         // 6. 最后一次更新
         Vue.nextTick(() => {
           // 7. 最后一次更新依赖约束引擎
-          state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies);
-          console.log('[Store] 依赖约束引擎已最终更新');
+          state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies)
+          console.log('[Store] 依赖约束引擎已最终更新')
 
           // 8. 最后一次强制更新依赖关系数组
-          state.dependencies = [...state.dependencies];
-          console.log('[Store] 依赖关系数组已最终更新');
-        });
-      });
+          state.dependencies = [...state.dependencies]
+          console.log('[Store] 依赖关系数组已最终更新')
+        })
+      })
     },
 
     RESET_TO_TEST_DATA(state) {
-      console.log('[数据重置] 开始重置到测试数据');
+      console.log('[数据重置] 开始重置到测试数据')
       try {
         // 1. 重置为测试数据
-        state.ganttData = ganttTestData.tasks;
-        state.dependencies = ganttTestData.dependencies;
+        state.ganttData = ganttTestData.tasks
+        state.dependencies = ganttTestData.dependencies
 
         // 2. 清除 localStorage
-        localStorage.removeItem('ganttData');
-        console.log('[数据重置] localStorage 已清除');
+        localStorage.removeItem('ganttData')
+        console.log('[数据重置] localStorage 已清除')
 
         // 3. 重新初始化依赖约束引擎
         if (state.dependencyEngine) {
-          state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies);
-          console.log('[数据重置] 依赖约束引擎已重置');
+          state.dependencyEngine = new DependencyConstraintEngine(state.ganttData, state.dependencies)
+          console.log('[数据重置] 依赖约束引擎已重置')
         }
 
         // 4. 等待下一个 tick
         Vue.nextTick(async () => {
           try {
             // 5. 强制更新
-            state.dependencies = [...state.dependencies];
-            console.log('[数据重置] 视图已更新');
+            state.dependencies = [...state.dependencies]
+            console.log('[数据重置] 视图已更新')
 
             // 6. 触发全局事件
-            window.dispatchEvent(new CustomEvent('dependency-updated'));
-            console.log('[数据重置] 重置完成');
+            window.dispatchEvent(new CustomEvent('dependency-updated'))
+            console.log('[数据重置] 重置完成')
           } catch (error) {
-            console.error('[数据重置] 更新过程中出错:', error);
+            console.error('[数据重置] 更新过程中出错:', error)
           }
-        });
+        })
       } catch (error) {
-        console.error('[数据重置] 重置失败:', error);
+        console.error('[数据重置] 重置失败:', error)
       }
-    },
+    }
   },
   actions: {
     setViewMode({ commit }, mode) {
@@ -1083,29 +1083,29 @@ export default new Vuex.Store({
       const findTaskInTree = (tasks, targetId) => {
         for (const task of tasks) {
           if (task.id === targetId) {
-            return task;
+            return task
           }
           if (task.children && task.children.length > 0) {
-            const found = findTaskInTree(task.children, targetId);
+            const found = findTaskInTree(task.children, targetId)
             if (found) {
-              return found;
+              return found
             }
           }
         }
-        return null;
-      };
+        return null
+      }
 
-      const originalTask = findTaskInTree(state.ganttData, taskId);
+      const originalTask = findTaskInTree(state.ganttData, taskId)
       if (!originalTask) {
-        console.error(`[依赖约束] 无法找到任务 ${taskId}`);
-        return { updated: [], cascaded: false, error: new Error(`无法找到任务 ${taskId}`) };
+        console.error(`[依赖约束] 无法找到任务 ${taskId}`)
+        return { updated: [], cascaded: false, error: new Error(`无法找到任务 ${taskId}`) }
       }
 
       // 备份原始状态
       const originalState = {
         startDate: originalTask.startDate,
         endDate: originalTask.endDate
-      };
+      }
 
       // 更新当前任务
       commit('UPDATE_TASK_DATES', { id: taskId, startDate: newStartDate, endDate: newEndDate })
@@ -1131,7 +1131,7 @@ export default new Vuex.Store({
         console.log(`[依赖约束] 发现 ${affectedPredecessorTasks.length} 个前置任务受影响`, affectedPredecessorTasks)
 
         // 合并所有受影响的任务
-        let allAffectedTasks = [...affectedPredecessorTasks, ...affectedSuccessorTasks]
+        const allAffectedTasks = [...affectedPredecessorTasks, ...affectedSuccessorTasks]
 
         // 检查并去重（可能存在同一个任务既是前置又是后续的情况）
         const uniqueTaskIds = new Set()
@@ -1209,7 +1209,7 @@ export default new Vuex.Store({
       try {
         // 按照深度排序，确保依赖链上游的任务先更新
         const sortedTasks = [...affectedTasks].sort((a, b) => (a.depth || 0) - (b.depth || 0))
-        console.log(`[级联更新] 已排序的更新队列:`, sortedTasks.map(t => ({
+        console.log('[级联更新] 已排序的更新队列:', sortedTasks.map(t => ({
           taskId: t.taskId,
           taskName: t.taskName,
           currentStart: t.currentStart,
@@ -1265,7 +1265,7 @@ export default new Vuex.Store({
         oldLag,
         newLag,
         source
-      });
+      })
 
       try {
         // 确保依赖约束引擎已初始化
@@ -1278,23 +1278,23 @@ export default new Vuex.Store({
         const findTaskInTree = (tasks, targetId) => {
           for (const task of tasks) {
             if (task.id === targetId) {
-              return task;
+              return task
             }
             if (task.children && task.children.length > 0) {
-              const found = findTaskInTree(task.children, targetId);
+              const found = findTaskInTree(task.children, targetId)
               if (found) {
-                return found;
+                return found
               }
             }
           }
-          return null;
-        };
+          return null
+        }
 
-        const fromTask = findTaskInTree(state.ganttData, from);
-        const toTask = findTaskInTree(state.ganttData, to);
+        const fromTask = findTaskInTree(state.ganttData, from)
+        const toTask = findTaskInTree(state.ganttData, to)
 
         if (!fromTask || !toTask) {
-          throw new Error(`无法找到相关任务: ${!fromTask ? '源任务' : '目标任务'} ${!fromTask ? from : to} 不存在`);
+          throw new Error(`无法找到相关任务: ${!fromTask ? '源任务' : '目标任务'} ${!fromTask ? from : to} 不存在`)
         }
 
         // 检查是否需要级联更新
@@ -1305,11 +1305,11 @@ export default new Vuex.Store({
           newType,
           oldLag,
           newLag
-        );
+        )
 
         if (needsUpdate && affectedTasks.length > 0) {
           // 构建提示消息
-          const message = `修改依赖关系属性将影响 ${affectedTasks.length} 个相关任务的时间范围，是否继续？\n\n受影响的任务：\n${affectedTasks.map(t => `- ${t.name}`).join('\n')}`;
+          const message = `修改依赖关系属性将影响 ${affectedTasks.length} 个相关任务的时间范围，是否继续？\n\n受影响的任务：\n${affectedTasks.map(t => `- ${t.name}`).join('\n')}`
 
           // 使用 ElementUI 的确认对话框
           await Vue.prototype.$confirm(message, '依赖关系变更确认', {
@@ -1317,33 +1317,33 @@ export default new Vuex.Store({
             cancelButtonText: '取消',
             type: 'warning',
             customClass: 'cascade-update-confirm-dialog'
-          });
+          })
 
-          console.log('[依赖约束] 用户确认了依赖关系变更级联更新，开始执行...');
+          console.log('[依赖约束] 用户确认了依赖关系变更级联更新，开始执行...')
 
           // 用户确认，执行级联更新
           const updateResults = await dispatch('executeCascadeUpdate', {
             affectedTasks,
             source: 'dependency-property-change'
-          });
+          })
 
-          console.log('[依赖约束] 级联更新执行完成，结果:', updateResults);
+          console.log('[依赖约束] 级联更新执行完成，结果:', updateResults)
 
           // 通知用户更新成功
-          Vue.prototype.$message.success(`已成功更新 ${updateResults.length} 个相关任务`);
+          Vue.prototype.$message.success(`已成功更新 ${updateResults.length} 个相关任务`)
 
-          return { updated: updateResults.map(r => r.id), cascaded: true };
+          return { updated: updateResults.map(r => r.id), cascaded: true }
         } else {
-          console.log('[依赖约束] 依赖属性变更无需级联更新');
-          return { updated: [], cascaded: false };
+          console.log('[依赖约束] 依赖属性变更无需级联更新')
+          return { updated: [], cascaded: false }
         }
       } catch (error) {
         if (error === 'cancel') {
-          console.log('[依赖约束] 用户取消了依赖关系变更');
-          throw error;
+          console.log('[依赖约束] 用户取消了依赖关系变更')
+          throw error
         } else {
-          console.error('[依赖约束] 处理依赖属性变更失败:', error);
-          throw new Error('处理依赖属性变更失败: ' + error.message);
+          console.error('[依赖约束] 处理依赖属性变更失败:', error)
+          throw new Error(`处理依赖属性变更失败: ${  error.message}`)
         }
       }
     },
@@ -1805,8 +1805,8 @@ export default new Vuex.Store({
     },
 
     resetToTestData({ commit }) {
-      commit('RESET_TO_TEST_DATA');
-    },
+      commit('RESET_TO_TEST_DATA')
+    }
   },
   getters: {
     allTaskIds: (state) => {
@@ -1977,7 +1977,7 @@ export default new Vuex.Store({
 
     // 获取筛选后的任务数据 - 新增筛选功能
     filteredTasks: (state, getters) => {
-      const visibleTasks = getters.visibleTasks
+      const {visibleTasks} = getters
       const filters = state.tableFilters
 
       // 如果没有筛选条件，返回所有可见任务
@@ -1993,41 +1993,41 @@ export default new Vuex.Store({
 
           // 根据列类型进行筛选匹配
           switch (columnId) {
-            case 'taskName':
-              console.log('task.name', filterValue)
-              return task.name && filterValue.some(value =>
-                task.name.toLowerCase().includes(value.toLowerCase())
-              )
-            case 'assignee':
-              return task.assignee && filterValue.some(value =>
-                task.assignee.toLowerCase().includes(value.toLowerCase())
-              )
+          case 'taskName':
+            console.log('task.name', filterValue)
+            return task.name && filterValue.some(value =>
+              task.name.toLowerCase().includes(value.toLowerCase())
+            )
+          case 'assignee':
+            return task.assignee && filterValue.some(value =>
+              task.assignee.toLowerCase().includes(value.toLowerCase())
+            )
 
-            case 'status':
-              const status = task.progress >= 100 ? 'completed' : task.progress > 0 ? 'in-progress' : 'not-started'
-              return status === filterValue
-            case 'progress':
-              const progress = parseInt(task.progress) || 0
-              switch (filterValue) {
-                case '0': return progress === 0
-                case '1-25': return progress >= 1 && progress <= 25
-                case '26-50': return progress >= 26 && progress <= 50
-                case '51-75': return progress >= 51 && progress <= 75
-                case '76-99': return progress >= 76 && progress <= 99
-                case '100': return progress === 100
-                default: return true
-              }
-            case 'startDate':
-            case 'endDate':
-            case 'planStartDate':
-            case 'planEndDate':
-              // 日期筛选：按年月匹配
-              const taskDate = task[columnId]
-              if (!taskDate) return false
-              const taskMonth = moment(taskDate).format('YYYY-MM')
-              return taskMonth === filterValue
-            default:
-              return true
+          case 'status':
+            const status = task.progress >= 100 ? 'completed' : task.progress > 0 ? 'in-progress' : 'not-started'
+            return status === filterValue
+          case 'progress':
+            const progress = parseInt(task.progress) || 0
+            switch (filterValue) {
+            case '0': return progress === 0
+            case '1-25': return progress >= 1 && progress <= 25
+            case '26-50': return progress >= 26 && progress <= 50
+            case '51-75': return progress >= 51 && progress <= 75
+            case '76-99': return progress >= 76 && progress <= 99
+            case '100': return progress === 100
+            default: return true
+            }
+          case 'startDate':
+          case 'endDate':
+          case 'planStartDate':
+          case 'planEndDate':
+            // 日期筛选：按年月匹配
+            const taskDate = task[columnId]
+            if (!taskDate) return false
+            const taskMonth = moment(taskDate).format('YYYY-MM')
+            return taskMonth === filterValue
+          default:
+            return true
           }
         })
       })

@@ -380,7 +380,7 @@
     />
 
     <!-- 统一的编辑对话框 -->
-    <edit-dialog
+    <EditDialog
       :visible="editDialogVisible"
       :type="editDialogType"
       :mode="editDialogMode"
@@ -603,7 +603,7 @@ export default {
     dependencies: {
       type: Array,
       default: () => []
-    },
+    }
   },
   data() {
     return {
@@ -1189,22 +1189,22 @@ export default {
     taskDialogTitle: {
       get() {
         switch (this.dialogMode) {
-          case 'edit':
-            return 'Edit Task'
-          case 'add-sibling':
-            return `Add Sibling Task (Sibling to: ${this.siblingSourceTask?.name || ''})`
-          case 'add-child':
-            return `Add Child Task (Parent: ${this.childSourceTask?.name || ''})`
-          case 'add':
-          default:
-            return 'Add New Task'
+        case 'edit':
+          return 'Edit Task'
+        case 'add-sibling':
+          return `Add Sibling Task (Sibling to: ${this.siblingSourceTask?.name || ''})`
+        case 'add-child':
+          return `Add Child Task (Parent: ${this.childSourceTask?.name || ''})`
+        case 'add':
+        default:
+          return 'Add New Task'
         }
       },
       set(value) {
         // 我们不需要实际设置值，因为标题是根据mode自动计算的
         console.warn('taskDialogTitle is computed based on dialogMode and should not be set directly')
       }
-    },
+    }
   },
   methods: {
     ...mapActions(['toggleTaskCollapsed', 'jumpToToday', 'clearLineageHighlight', 'setLineageHighlight']),
@@ -1584,14 +1584,14 @@ export default {
 
     // 处理节点拖拽开始
     handleNodeDragStart(task) {
-      console.log('[甘特图] 节点拖拽开始，禁用背景交互:', task.name);
-      this.isNodeDragging = true;
+      console.log('[甘特图] 节点拖拽开始，禁用背景交互:', task.name)
+      this.isNodeDragging = true
     },
 
     // 处理节点拖拽结束
     handleNodeDragEnd() {
-      console.log('[甘特图] 节点拖拽结束，恢复背景交互');
-      this.isNodeDragging = false;
+      console.log('[甘特图] 节点拖拽结束，恢复背景交互')
+      this.isNodeDragging = false
     },
 
     // 处理节点拖拽到可视区域外部
@@ -2270,8 +2270,8 @@ export default {
 
               this.$store.commit('VALIDATE_TASK_TYPE', {
                 taskType: this.newTask.type || 'task',
-                parentType: parentType,
-                isRoot: isRoot
+                parentType,
+                isRoot
               })
             } catch (error) {
               this.$message.error(error.message)
@@ -2291,8 +2291,8 @@ export default {
 
             this.$store.commit('VALIDATE_TASK_TYPE', {
               taskType: this.newTask.type || 'task',
-              parentType: parentType,
-              isRoot: isRoot
+              parentType,
+              isRoot
             })
           } catch (error) {
             this.$message.error(error.message)
@@ -2391,21 +2391,21 @@ export default {
       try {
         // 额外验证：确保日期逻辑正确
         if (moment(this.newTask.startDate).isAfter(moment(this.newTask.endDate))) {
-          throw new Error('开始日期不能晚于结束日期');
+          throw new Error('开始日期不能晚于结束日期')
         }
 
         if (this.newTask.planStartDate && this.newTask.planEndDate) {
           if (moment(this.newTask.planStartDate).isAfter(moment(this.newTask.planEndDate))) {
-            throw new Error('计划开始日期不能晚于计划结束日期');
+            throw new Error('计划开始日期不能晚于计划结束日期')
           }
         }
 
         // 获取原始任务数据以检查是否有日期变更
-        const originalTask = this.findTaskById(this.editingTaskId);
+        const originalTask = this.findTaskById(this.editingTaskId)
         const hasDateChange = (
           this.newTask.startDate !== originalTask.startDate ||
           this.newTask.endDate !== originalTask.endDate
-        );
+        )
 
         // 构建更新数据
         const updates = {
@@ -2419,39 +2419,39 @@ export default {
           priority: this.newTask.priority,
           color: this.newTask.color,
           description: this.newTask.description
-        };
+        }
 
         // 如果修改了父任务，需要特殊处理
         if (this.newTask.parentId !== originalTask.parentId) {
-          updates.parentId = this.newTask.parentId;
+          updates.parentId = this.newTask.parentId
         }
 
         // 先更新当前任务
         this.$store.dispatch('updateGanttItem', {
           id: this.editingTaskId,
-          updates: updates
-        });
+          updates
+        })
 
         // 如果有日期变更，触发统一的任务时间变更处理
         if (hasDateChange) {
-          console.log('[任务编辑] 检测到日期变更，触发级联更新检查');
+          console.log('[任务编辑] 检测到日期变更，触发级联更新检查')
 
           await this.$store.dispatch('handleTaskTimeChange', {
             taskId: this.editingTaskId,
             newStartDate: this.newTask.startDate,
             newEndDate: this.newTask.endDate,
             source: 'task-edit'
-          });
+          })
         }
 
-        this.$message.success('任务编辑成功');
-        this.showAddDialog = false;
-        this.resetTaskForm();
-        this.autoRangeDebounced(); // 编辑后自动 range
+        this.$message.success('任务编辑成功')
+        this.showAddDialog = false
+        this.resetTaskForm()
+        this.autoRangeDebounced() // 编辑后自动 range
       } catch (error) {
-        console.error('更新任务失败:', error);
-        this.$message.error(error.message || '任务更新失败');
-        this.addingTask = false;
+        console.error('更新任务失败:', error)
+        this.$message.error(error.message || '任务更新失败')
+        this.addingTask = false
       }
     },
 
@@ -2665,7 +2665,7 @@ export default {
 
         // 查找任务以检查类型
         const task = this.findTaskById(changeData.taskId)
-        let updates = {
+        const updates = {
           [changeData.field]: changeData.newValue
         }
 
@@ -2686,7 +2686,7 @@ export default {
         // 更新任务数据 - 包含日期验证
         this.$store.dispatch('updateGanttItem', {
           id: changeData.taskId,
-          updates: updates
+          updates
         })
 
         // 如果是日期变更，检查是否需要级联更新
@@ -3394,7 +3394,7 @@ export default {
 
       // 添加缓冲时间，让视图更宽松
       const timeSpan = maxDate.diff(minDate, 'days')
-      let bufferDays = 15 // 默认缓冲15天
+      const bufferDays = 15 // 默认缓冲15天
 
       // 根据项目时间跨度和视图模式调整缓冲时间，确保最早任务靠左显示
       let leftBufferDays = 3  // 左侧缓冲很小，确保最早任务靠左
@@ -3528,41 +3528,41 @@ export default {
       })
     },
 
-        // === 工具栏相关事件处理方法 ===
+    // === 工具栏相关事件处理方法 ===
 
-        // 处理显示添加任务弹框
+    // 处理显示添加任务弹框
     handleShowAddDialog(type = 'task') {
       // 设置对话框参数
-      this.editDialogType = type;
-      this.editDialogMode = 'add';
-      this.editingTask = null;
-      this.parentTask = null;
+      this.editDialogType = type
+      this.editDialogMode = 'add'
+      this.editingTask = null
+      this.parentTask = null
 
       // 如果是milestone类型，设置相同的开始和结束日期
       if (type === 'milestone') {
-        const today = moment().format('YYYY-MM-DD');
+        const today = moment().format('YYYY-MM-DD')
         this.editDialogForm = {
           startDate: today,
           endDate: today
-        };
+        }
       } else {
-        this.editDialogForm = {};
+        this.editDialogForm = {}
       }
 
-      this.editDialogVisible = true;
+      this.editDialogVisible = true
     },
 
     // 处理对话框关闭
     handleEditDialogClose() {
-      this.editDialogVisible = false;
-      this.editingTask = null;
-      this.parentTask = null;
+      this.editDialogVisible = false
+      this.editingTask = null
+      this.parentTask = null
     },
 
     // 处理任务更新
     async handleTaskUpdated(updatedTask) {
       try {
-        console.log('更新任务数据:', updatedTask);
+        console.log('更新任务数据:', updatedTask)
 
         // 确保更新所有必要字段，特别是状态字段
         const updates = {
@@ -3577,9 +3577,9 @@ export default {
           links: updatedTask.links || [],
           parentId: updatedTask.parentId,
           childrenTasks: updatedTask.childrenTasks || []
-        };
+        }
 
-        console.log('准备更新的数据:', updates);
+        console.log('准备更新的数据:', updates)
 
         // 更新任务数据
         await this.$store.dispatch('updateGanttItem', {
@@ -3587,30 +3587,30 @@ export default {
           updates,
           isParentNode: updatedTask.childrenTasks && updatedTask.childrenTasks.length > 0,
           linkParentChildDates: this.$store.state.linkParentChildDates
-        });
+        })
 
         // 更新表格数据
-        this.refreshTableData();
+        this.refreshTableData()
 
         // 更新甘特图视图
         this.$nextTick(() => {
           // 强制刷新视图
-          this.$forceUpdate();
+          this.$forceUpdate()
 
           // 更新右侧区域宽度
-          this.updateRightAreaWidth();
+          this.updateRightAreaWidth()
 
           // 刷新时间轴
-          this.timelineRefreshKey++;
+          this.timelineRefreshKey++
 
           // 刷新甘特图
-          this.refreshChart();
-        });
+          this.refreshChart()
+        })
 
-        this.$message.success('Task updated successfully!');
+        this.$message.success('Task updated successfully!')
       } catch (error) {
-        console.error('更新任务失败:', error);
-        this.$message.error('Update failed, please try again');
+        console.error('更新任务失败:', error)
+        this.$message.error('Update failed, please try again')
       }
     },
 
@@ -3618,7 +3618,7 @@ export default {
     async handleTaskAdded(taskData) {
       try {
         // 生成任务ID
-        const taskId = this.generateUniqueTaskId();
+        const taskId = this.generateUniqueTaskId()
 
         // 构建完整的任务数据
         const newTask = {
@@ -3635,7 +3635,7 @@ export default {
           children: [],
           parentId: taskData.parentId,
           collapsed: false
-        };
+        }
 
         // 根据不同模式处理任务添加
         if (taskData.mode === 'add-child') {
@@ -3644,54 +3644,54 @@ export default {
             task: newTask,
             parentId: taskData.parentId,
             mode: 'add-child'
-          });
+          })
         } else if (taskData.mode === 'add-sibling') {
           // 添加同级任务
           await this.$store.dispatch('addNewTask', {
             task: newTask,
             parentId: taskData.parentId,
             mode: 'add-sibling'
-          });
+          })
         } else {
           // 普通添加
           await this.$store.dispatch('addNewTask', {
             task: newTask,
             parentId: taskData.parentId,
             mode: 'add'
-          });
+          })
         }
 
         // 更新 localStorage
-        const ganttData = JSON.parse(localStorage.getItem('ganttData') || '[]');
-        ganttData.push(newTask);
-        localStorage.setItem('ganttData', JSON.stringify(ganttData));
+        const ganttData = JSON.parse(localStorage.getItem('ganttData') || '[]')
+        ganttData.push(newTask)
+        localStorage.setItem('ganttData', JSON.stringify(ganttData))
 
         // 刷新视图
-        await this.refreshTableData();
-        await this.refreshChart();
+        await this.refreshTableData()
+        await this.refreshChart()
 
         // 滚动到新添加的任务
         this.$nextTick(() => {
-          this.scrollToTask(newTask.id);
-        });
+          this.scrollToTask(newTask.id)
+        })
 
         // 显示成功消息
-        this.$message.success('任务添加成功');
+        this.$message.success('任务添加成功')
 
         // 关闭对话框
-        this.editDialogVisible = false;
+        this.editDialogVisible = false
       } catch (error) {
-        console.error('添加任务失败:', error);
-        this.$message.error('添加任务失败，请重试');
+        console.error('添加任务失败:', error)
+        this.$message.error('添加任务失败，请重试')
       }
     },
 
     // 处理编辑对话框关闭
     handleEditDialogClose() {
-      this.editDialogVisible = false;
-      this.editingTask = null;
-      this.parentTask = null;
-      this.editDialogForm = {};
+      this.editDialogVisible = false
+      this.editingTask = null
+      this.parentTask = null
+      this.editDialogForm = {}
     },
 
     // 处理批量删除
@@ -3707,7 +3707,7 @@ export default {
       this.$message.success(`${selectedIds.length} tasks have been deleted`)
     },
 
-            // 处理展开所有任务
+    // 处理展开所有任务
     handleExpandAll() {
       // 确保collapsedTasks是数组
       const currentCollapsed = Array.isArray(this.collapsedTasks) ? this.collapsedTasks : []
@@ -3737,7 +3737,7 @@ export default {
       this.$message.success('All tasks have been expanded')
     },
 
-        // 处理收起所有任务
+    // 处理收起所有任务
     handleCollapseAll() {
       const collapseTasks = []
 
@@ -3843,15 +3843,15 @@ export default {
     handleSaveData() {
       try {
         // 获取完整的甘特图数据
-        const ganttData = this.$store.state.ganttData
-        const dependencies = this.$store.state.dependencies
-        const columnConfig = this.$store.state.columnConfig
+        const {ganttData} = this.$store.state
+        const {dependencies} = this.$store.state
+        const {columnConfig} = this.$store.state
 
         // 构建保存数据对象
         const saveData = {
           timestamp: new Date().toISOString(),
           version: '1.0',
-          ganttData: ganttData,
+          ganttData,
           dependencies: dependencies || [],
           columnConfig: columnConfig || [],
           totalTasks: this.flattenTasks.length,
@@ -3886,54 +3886,54 @@ export default {
         })
       } catch (error) {
         console.error('[全量保存] 保存失败:', error)
-        this.$message.error('Save failed: ' + error.message)
+        this.$message.error(`Save failed: ${  error.message}`)
       }
     },
 
     // 刷新甘特图
     async refreshChart(event) {
-      console.log('[GanttChart] 开始刷新甘特图', event);
+      console.log('[GanttChart] 开始刷新甘特图', event)
 
       try {
         // 1. 重新初始化依赖约束引擎
-        await this.$store.dispatch('initDependencyEngine');
+        await this.$store.dispatch('initDependencyEngine')
 
         // 2. 等待依赖约束引擎初始化完成
-        await this.$nextTick();
+        await this.$nextTick()
 
         // 3. 清除GanttBars组件的缓存
         if (this.$refs.ganttBars) {
-          this.$refs.ganttBars.clearDependencyCache();
+          this.$refs.ganttBars.clearDependencyCache()
         }
 
         // 4. 等待缓存清除完成
-        await this.$nextTick();
+        await this.$nextTick()
 
         // 5. 更新右侧区域宽度
-        this.updateRightAreaWidth();
+        this.updateRightAreaWidth()
 
         // 6. 等待宽度更新完成
-        await this.$nextTick();
+        await this.$nextTick()
 
         // 7. 强制更新所有组件
         if (this.$refs.ganttBars) {
-          this.$refs.ganttBars.$forceUpdate();
+          this.$refs.ganttBars.$forceUpdate()
         }
-        this.$forceUpdate();
+        this.$forceUpdate()
 
         // 8. 等待组件更新完成
-        await this.$nextTick();
+        await this.$nextTick()
 
         // 9. 触发重新布局
-        window.dispatchEvent(new Event('resize'));
+        window.dispatchEvent(new Event('resize'))
 
         // 10. 通知父组件刷新完成
-        this.$emit('refresh-complete', event);
+        this.$emit('refresh-complete', event)
 
-        console.log('[GanttChart] 刷新完成');
+        console.log('[GanttChart] 刷新完成')
       } catch (error) {
-        console.error('[GanttChart] 刷新失败:', error);
-        throw error;
+        console.error('[GanttChart] 刷新失败:', error)
+        throw error
       }
     },
 
@@ -4046,7 +4046,7 @@ export default {
                 })
                 .catch((error) => {
                   console.error('[级联更新] 执行失败:', error)
-                  this.$message.error('级联更新执行失败：' + error.message)
+                  this.$message.error(`级联更新执行失败：${  error.message}`)
                   done()
                 })
             } else {
@@ -4076,7 +4076,7 @@ export default {
 
     // 处理拖拽级联更新检查
     handleDragCascadeUpdateCheck(payload) {
-      console.log('[拖拽级联更新] 收到拖拽结束检查请求:', payload);
+      console.log('[拖拽级联更新] 收到拖拽结束检查请求:', payload)
 
       // 使用统一的任务时间变更处理
       this.$store.dispatch('handleTaskTimeChange', {
@@ -4084,7 +4084,7 @@ export default {
         newStartDate: payload.newStartDate,
         newEndDate: payload.newEndDate,
         source: 'drag-end'
-      });
+      })
     },
 
     // 执行级联更新
@@ -4133,7 +4133,7 @@ export default {
 
       } catch (error) {
         console.error('[级联更新] 执行失败:', error)
-        this.$message.error('级联更新执行失败：' + error.message)
+        this.$message.error(`级联更新执行失败：${  error.message}`)
         throw error
       } finally {
         if (loadingInstance) {
@@ -4143,20 +4143,20 @@ export default {
     },
     applyUpdates(updates) {
       updates.forEach(update => {
-        const task = this.tasks.find(t => t.id === update.taskId);
+        const task = this.tasks.find(t => t.id === update.taskId)
         if (task) {
-          task.startDate = update.newStart;
-          task.endDate = update.newEnd;
+          task.startDate = update.newStart
+          task.endDate = update.newEnd
           // 触发任务更新事件或其他必要的操作
-          this.$emit('task-updated', task);
+          this.$emit('task-updated', task)
         }
-      });
+      })
     },
     async addTask(task) {
       try {
         // 验证任务数据
         if (!task.name || !task.startDate || !task.endDate) {
-          throw new Error('任务信息不完整');
+          throw new Error('任务信息不完整')
         }
 
         // 格式化日期
@@ -4164,18 +4164,18 @@ export default {
           ...task,
           startDate: moment(task.startDate).format('YYYY-MM-DD HH:mm:ss'),
           endDate: moment(task.endDate).format('YYYY-MM-DD HH:mm:ss')
-        };
+        }
 
         // 添加任务
-        await this.$store.dispatch('addTask', formattedTask);
+        await this.$store.dispatch('addTask', formattedTask)
 
         // 刷新图表
-        this.refreshChart();
+        this.refreshChart()
 
-        return true;
+        return true
       } catch (error) {
-        console.error('添加任务失败:', error);
-        throw error;
+        console.error('添加任务失败:', error)
+        throw error
       }
     },
 
@@ -4237,112 +4237,112 @@ export default {
       this.editingTask = {
         ...task,
         childrenTasks: this.findChildrenTasks(task.id)
-      };
+      }
       this.parentTask = this.findParentTask(task.parentId)
       this.editDialogVisible = true
     },
 
     // 显示添加子任务对话框
     handleShowAddChildDialog(task) {
-      console.log('显示添加子任务对话框:', task);
-      if (!task) return;
+      console.log('显示添加子任务对话框:', task)
+      if (!task) return
 
       // 检查父任务类型是否允许添加子任务
       if (task.type === 'milestone') {
-        this.$message.warning('Milestone类型不能添加子任务');
-        return;
+        this.$message.warning('Milestone类型不能添加子任务')
+        return
       }
 
       // 设置对话框参数
-      this.editDialogType = 'task'; // 子任务只能是task类型
-      this.editDialogMode = 'add-child';
-      this.editingTask = null;
-      this.parentTask = task;
+      this.editDialogType = 'task' // 子任务只能是task类型
+      this.editDialogMode = 'add-child'
+      this.editingTask = null
+      this.parentTask = task
 
       // 设置默认日期范围
-      const today = moment().format('YYYY-MM-DD');
+      const today = moment().format('YYYY-MM-DD')
       this.editDialogForm = {
         startDate: today,
         endDate: moment().add(7, 'days').format('YYYY-MM-DD')
-      };
+      }
 
-      this.editDialogVisible = true;
+      this.editDialogVisible = true
     },
 
     // 显示添加同级任务对话框
     handleShowAddSiblingDialog(task) {
-      console.log('显示添加同级任务对话框:', task);
-      if (!task) return;
+      console.log('显示添加同级任务对话框:', task)
+      if (!task) return
 
       // 获取父任务
-      const parentTask = this.findParentTask(task.parentId);
+      const parentTask = this.findParentTask(task.parentId)
 
       // 检查父任务类型是否允许添加同级任务
       if (parentTask && parentTask.type === 'milestone') {
-        this.$message.warning('Milestone类型下不能添加同级任务');
-        return;
+        this.$message.warning('Milestone类型下不能添加同级任务')
+        return
       }
 
       // 设置对话框参数
-      this.editDialogType = task.type; // 同级任务类型与当前任务相同
-      this.editDialogMode = 'add-sibling';
-      this.editingTask = null;
-      this.parentTask = parentTask;
+      this.editDialogType = task.type // 同级任务类型与当前任务相同
+      this.editDialogMode = 'add-sibling'
+      this.editingTask = null
+      this.parentTask = parentTask
 
       // 设置默认日期范围
-      const today = moment().format('YYYY-MM-DD');
+      const today = moment().format('YYYY-MM-DD')
       this.editDialogForm = {
         startDate: today,
         endDate: this.editDialogType === 'milestone' ? today : moment().add(7, 'days').format('YYYY-MM-DD')
-      };
+      }
 
-      this.editDialogVisible = true;
+      this.editDialogVisible = true
     },
 
     // 显示编辑对话框
     showEditDialog(task) {
-      if (!task) return;
-      this.editDialogType = task.type || 'task';
-      this.editDialogMode = 'edit';
+      if (!task) return
+      this.editDialogType = task.type || 'task'
+      this.editDialogMode = 'edit'
       this.editingTask = {
         ...task,
         childrenTasks: this.findChildrenTasks(task.id)
-      };
-      this.parentTask = this.findParentTask(task.parentId);
+      }
+      this.parentTask = this.findParentTask(task.parentId)
     },
 
     // 显示添加同级任务对话框
     findParentTask(parentId) {
-      if (!parentId) return null;
-      return this.flattenTasks.find(task => task.id === parentId);
+      if (!parentId) return null
+      return this.flattenTasks.find(task => task.id === parentId)
     },
 
     // 查找子任务
     findChildrenTasks(parentId) {
-      if (!parentId) return [];
-      return this.flattenTasks.filter(task => task.parentId === parentId);
+      if (!parentId) return []
+      return this.flattenTasks.filter(task => task.parentId === parentId)
     },
 
     // 刷新表格数据
     refreshTableData() {
       // 通知表格组件刷新数据
       if (this.$refs.customTable) {
-        this.$refs.customTable.refreshData();
+        this.$refs.customTable.refreshData()
       }
       // 更新右侧区域宽度
       this.$nextTick(() => {
-        this.updateRightAreaWidth();
-      });
-    },
+        this.updateRightAreaWidth()
+      })
+    }
   },
-    mounted() {
-      // 初始化表格宽度配置
-      this.leftWidth = this.tableWidth || 400;
+  mounted() {
+    // 初始化表格宽度配置
+    this.leftWidth = this.tableWidth || 400
 
-      // 初始化列配置
-      if (this.columns && Array.isArray(this.columns)) {
-        // 处理列配置
-      }
+    // 初始化列配置
+    if (this.columns && Array.isArray(this.columns)) {
+      // 处理列配置
+    }
     // 初始化表格宽度配置
     this.leftWidth = this.tableWidth || 400
 
@@ -4422,23 +4422,23 @@ export default {
 
     // 滚动条联动
     this.$nextTick(() => {
-      const leftTableBody = this.$refs.customTable?.$refs?.tableBody;
-      const rightScrollContainer = this.$refs.scrollContainer;
+      const leftTableBody = this.$refs.customTable?.$refs?.tableBody
+      const rightScrollContainer = this.$refs.scrollContainer
       if (leftTableBody && rightScrollContainer) {
-        let isSyncingLeft = false;
-        let isSyncingRight = false;
+        let isSyncingLeft = false
+        let isSyncingRight = false
         leftTableBody.addEventListener('scroll', () => {
-          if (isSyncingLeft) { isSyncingLeft = false; return; }
-          isSyncingRight = true;
-          rightScrollContainer.scrollTop = leftTableBody.scrollTop;
-        });
+          if (isSyncingLeft) { isSyncingLeft = false; return }
+          isSyncingRight = true
+          rightScrollContainer.scrollTop = leftTableBody.scrollTop
+        })
         rightScrollContainer.addEventListener('scroll', () => {
-          if (isSyncingRight) { isSyncingRight = false; return; }
-          isSyncingLeft = true;
-          leftTableBody.scrollTop = rightScrollContainer.scrollTop;
-        });
+          if (isSyncingRight) { isSyncingRight = false; return }
+          isSyncingLeft = true
+          leftTableBody.scrollTop = rightScrollContainer.scrollTop
+        })
       }
-    });
+    })
   },
   updated() {
     // 在组件更新后也检查一下高度

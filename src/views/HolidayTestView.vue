@@ -158,7 +158,7 @@ export default {
       } catch (error) {
         console.error('节假日服务测试失败:', error)
         this.apiError = error.message || '未知错误'
-        this.$message.error('节假日数据获取失败: ' + this.apiError)
+        this.$message.error(`节假日数据获取失败: ${  this.apiError}`)
       } finally {
         this.loadingHolidays = false
       }
